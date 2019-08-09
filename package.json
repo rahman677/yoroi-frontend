@@ -160,7 +160,7 @@
     "react-hot-loader": "4.12.10",
     "react-intl": "2.9.0",
     "react-markdown": "4.1.0",
-    "react-polymorph": "git+https://github.com/SebastienGllmt/react-polymorph-fix.git",
+    "react-polymorph": "github:input-output-hk/react-polymorph#chore/ddw-665-rewrite-numeric-input-component",
     "react-router": "5.0.1",
     "react-router-dom": "5.0.1",
     "react-svg-inline": "2.1.1",
