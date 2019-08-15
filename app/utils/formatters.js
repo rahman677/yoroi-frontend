@@ -8,7 +8,6 @@ export const formattedWalletAmount = (amount: BigNumber): string => (
 
 /** removes commas */
 export const formattedAmountToBigNumber = (amount: string) => {
-  amount = amount && amount.toString();
   const cleanedAmount = amount.replace(/,/g, '');
   return new BigNumber(cleanedAmount !== '' ? cleanedAmount : 0);
 };
@@ -21,7 +20,6 @@ export const formattedAmountToBigNumber = (amount: string) => {
  * shifts decimal places over to turn into a whole number
  */
 export const formattedAmountToNaturalUnits = (amount: string): string => {
-  amount = amount && amount.toString();
   // pad number in the case of missing digits
   const split = amount.split('.');
   if (split.length === 2) {
@@ -36,7 +34,6 @@ export const formattedAmountToNaturalUnits = (amount: string): string => {
 };
 
 /** removes all trailing zeros */
-export const formattedAmountWithoutTrailingZeros = (amount: string): string => {
-  amount = amount && amount.toString();
-  return amount.replace(/0+$/, '').replace(/\.$/, '');
-};
+export const formattedAmountWithoutTrailingZeros = (amount: string): string => (
+  amount.replace(/0+$/, '').replace(/\.$/, '')
+);
