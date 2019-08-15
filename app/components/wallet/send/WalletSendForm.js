@@ -97,7 +97,7 @@ const messages = defineMessages({
 
 type Props = {|
   currencyUnit: string,
-  currencyMaxIntegerDigits: number,
+  currencyMaxIntegerDigits: number, // TODO: remove, not used anymore
   currencyMaxFractionalDigits: number,
   hasAnyPending: boolean,
   validateAmount: (amountInNaturalUnits: string) => Promise<boolean>,
@@ -200,18 +200,18 @@ export default class WalletSendForm extends Component<Props> {
         placeholder: `0.${'0'.repeat(this.props.currencyMaxFractionalDigits)}`,
         value: this.props.uriParams
           ? formattedWalletAmount(this.props.uriParams.amount)
-          : '',
+          : null,
         validators: [async ({ field }) => {
           if (this.props.shouldSendAll) {
             // sendall doesn't depend on the amount so always succeed
             return true;
           }
-          const amountValue = field.value;
-          if (amountValue === '') {
+
+          if (field.value === null) {
             this.props.updateAmount();
             return [false, this.context.intl.formatMessage(globalMessages.fieldIsRequired)];
           }
-          const formattedAmount = formattedAmountToNaturalUnits(amountValue);
+          const formattedAmount = formattedAmountToNaturalUnits(field.value.toString());
           const isValidAmount = await this.props.validateAmount(formattedAmount);
           if (isValidAmount) {
             this.props.updateAmount(Number(formattedAmount));
@@ -241,7 +241,6 @@ export default class WalletSendForm extends Component<Props> {
 
     const {
       currencyUnit,
-      currencyMaxIntegerDigits,
       currencyMaxFractionalDigits,
       hasAnyPending,
       classicTheme,
@@ -296,8 +295,9 @@ export default class WalletSendForm extends Component<Props> {
               {...amountFieldProps}
               className="amount"
               label={intl.formatMessage(messages.amountLabel)}
-              maxBeforeDot={currencyMaxIntegerDigits}
-              maxAfterDot={currencyMaxFractionalDigits}
+              numberLocaleOptions={{
+                minimumFractionDigits: currencyMaxFractionalDigits,
+              }}
               disabled={this.props.shouldSendAll}
               error={(transactionFeeError || amountField.error)}
               // AmountInputSkin props

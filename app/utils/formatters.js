@@ -8,8 +8,11 @@ export const formattedWalletAmount = (amount: BigNumber): string => (
 
 /** removes commas */
 export const formattedAmountToBigNumber = (amount: string) => {
-  const cleanedAmount = amount.replace(/,/g, '');
-  return new BigNumber(cleanedAmount !== '' ? cleanedAmount : 0);
+  try {
+    return new BigNumber(amount);
+  } catch (error) {
+    return new BigNumber(0);
+  }
 };
 
 /**
