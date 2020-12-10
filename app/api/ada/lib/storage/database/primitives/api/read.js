@@ -978,7 +978,7 @@ export class GetCertificates {
       .where(certAddrTable[certAddrSchema.properties.AddressId].in(
         request.addressIds
       ))
-      .orderBy(blockTable[Tables.BlockSchema.properties.SlotNum], lf.Order.DESC)
+      .orderBy(blockTable[Tables.BlockSchema.properties.Height], lf.Order.DESC)
       .orderBy(txTable[Tables.TransactionSchema.properties.Ordinal], lf.Order.DESC)
       .orderBy(txTable[Tables.CertificateSchema.properties.Ordinal], lf.Order.DESC);
 

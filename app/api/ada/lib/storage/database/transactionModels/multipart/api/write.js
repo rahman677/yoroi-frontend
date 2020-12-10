@@ -26,7 +26,7 @@ import type {
   AccountingTransactionInputInsert,
   AccountingTransactionOutputInsert,
 } from '../../account/tables';
-import { ModifyTransaction, ModifyCertificate, ModifyToken, } from '../../../primitives/api/write';
+import { ModifyTransaction, ModifyCertificate, } from '../../../primitives/api/write';
 import type { AddCertificateRequest } from '../../../primitives/api/write';
 import { ModifyUtxoTransaction, ModifyTokenList } from '../../utxo/api/write';
 import { ModifyAccountingTransaction } from '../../account/api/write';
@@ -244,12 +244,10 @@ export class ModifyErgoTx {
   static depTables: {|
     ModifyTransaction: typeof ModifyTransaction,
     ModifyUtxoTransaction: typeof ModifyUtxoTransaction,
-    ModifyToken: typeof ModifyToken,
     ModifyTokenList: typeof ModifyTokenList,
   |} = Object.freeze({
     ModifyTransaction,
     ModifyUtxoTransaction,
-    ModifyToken,
     ModifyTokenList,
   });
 
@@ -263,16 +261,14 @@ export class ModifyErgoTx {
       ioGen: (txRowId: number) => {|
         utxoInputs: Array<{|
           input: UtxoTransactionInputInsert,
-          tokens: Array<$Diff<TokenInsert, {| Digest: number |}>>,
           tokenList: Array<
-            {| TokenId: number, UtxoTransactionInputId: number |} => TokenListInsert
+            {| UtxoTransactionInputId: number |} => TokenListInsert
           >,
         |}>,
         utxoOutputs: Array<{|
           utxo: UtxoTransactionOutputInsert,
-          tokens: Array<$Diff<TokenInsert, {| Digest: number |}>>,
           tokenList: Array<
-            {| TokenId: number, UtxoTransactionOutputId: number |} => TokenListInsert
+            {| UtxoTransactionOutputId: number |} => TokenListInsert
           >,
         |}>,
       |},
@@ -301,40 +297,19 @@ export class ModifyErgoTx {
       }
     );
 
-    const tokenRows = await ModifyErgoTx.depTables.ModifyToken.upsert(
-      db, tx,
-      [
-        ...utxoInputs.flatMap(input => input.tokens),
-        ...utxoOutputs.flatMap(output => output.tokens),
-      ],
-    );
-    const tokenLookup = new Map<string, $ReadOnly<TokenRow>>(
-      tokenRows.map(row => [row.Identifier, row])
-    );
-
     const tokenListInserts: Array<TokenListInsert> = [];
-    // add tokens for inputs
+    // add assets for inputs
     for (let i = 0; i < utxoInputs.length; i++) {
       for (let listIndex = 0; listIndex < utxoInputs[i].tokenList.length; listIndex++) {
-        const tokenInfo = tokenLookup.get(utxoInputs[i].tokens[listIndex].Identifier);
-        if (tokenInfo == null) {
-          throw new Error(`${nameof(ModifyErgoTx)}::${nameof(ModifyErgoTx.addTxWithIOs)} no token info found`);
-        }
         tokenListInserts.push(utxoInputs[i].tokenList[listIndex]({
-          TokenId: tokenInfo.TokenId,
           UtxoTransactionInputId: utxo.utxoInputs[i].UtxoTransactionInputId
         }));
       }
     }
-    // add tokens for outputs
+    // add assets for outputs
     for (let i = 0; i < utxoOutputs.length; i++) {
       for (let listIndex = 0; listIndex < utxoOutputs[i].tokenList.length; listIndex++) {
-        const tokenInfo = tokenLookup.get(utxoOutputs[i].tokens[listIndex].Identifier);
-        if (tokenInfo == null) {
-          throw new Error(`${nameof(ModifyErgoTx)}::${nameof(ModifyErgoTx.addTxWithIOs)} no token info found`);
-        }
         tokenListInserts.push(utxoOutputs[i].tokenList[listIndex]({
-          TokenId: tokenInfo.TokenId,
           UtxoTransactionOutputId: utxo.utxoOutputs[i].UtxoTransactionOutputId
         }));
       }

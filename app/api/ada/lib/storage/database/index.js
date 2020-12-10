@@ -15,7 +15,7 @@ import {
   promisifyDbCall,
 } from './utils';
 import { GetEncryptionMeta, } from './primitives/api/read';
-import { ModifyEncryptionMeta, ModifyNetworks, } from './primitives/api/write';
+import { ModifyEncryptionMeta, ModifyNetworks, ModifyToken, } from './primitives/api/write';
 import { ModifyExplorers, } from './explorers/api/write';
 import { populatePrimitivesDb, TransactionType } from './primitives/tables';
 import { populateCommonDb } from './walletTypes/common/tables';
@@ -29,7 +29,7 @@ import { populateMemoTransactionsDb } from './memos/tables';
 import { populatePricesDb } from './prices/tables';
 import { populateExplorerDb } from './explorers/tables';
 import { KeyKind } from '../../../../common/lib/crypto/keys/types';
-import { networks } from './prepackaged/networks';
+import { networks, defaultAssets } from './prepackaged/networks';
 import { prepackagedExplorers } from './prepackaged/explorers';
 import environment from '../../../../../environment';
 
@@ -89,7 +89,7 @@ const populateNetworkDefaults = async (
   await raii(
     db,
     depTables,
-    async tx => ModifyNetworks.upsert(
+    async tx => deps.ModifyNetworks.upsert(
       db,
       tx,
       Object.keys(networks).map(network => networks[network])
@@ -111,10 +111,30 @@ const populateExplorerDefaults = async (
   await raii(
     db,
     depTables,
-    async tx => ModifyExplorers.upsert(
+    async tx => deps.ModifyExplorers.upsert(
       db,
       tx,
       [...prepackagedExplorers.values()].flat(),
+    )
+  );
+};
+const populateAssetDefaults = async (
+  db: lf$Database,
+): Promise<void> => {
+  const deps = Object.freeze({
+    ModifyToken,
+  });
+  const depTables = Object
+    .keys(deps)
+    .map(key => deps[key])
+    .flatMap(table => getAllSchemaTables(db, table));
+  await raii(
+    db,
+    depTables,
+    async tx => deps.ModifyToken.upsert(
+      db,
+      tx,
+      defaultAssets,
     )
   );
 };
@@ -128,6 +148,7 @@ export const loadLovefieldDB = async (
   await populateEncryptionDefault(db);
   await populateNetworkDefaults(db);
   await populateExplorerDefaults(db);
+  await populateAssetDefaults(db);
 
   return db;
 };
@@ -154,7 +175,7 @@ export async function importOldDb(
 const populateAndCreate = async (
   storeType: $Values<typeof schema.DataStoreType>
 ): Promise<lf$Database> => {
-  const schemaVersion = 15;
+  const schemaVersion = 16;
   const schemaBuilder = schema.create(schemaName, schemaVersion);
 
   populatePrimitivesDb(schemaBuilder);

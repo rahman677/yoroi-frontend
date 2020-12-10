@@ -464,11 +464,44 @@ export const AddressMappingSchema: {|
   }
 };
 
+export type CommonMetadata = {|
+  numberOfDecimals: number,
+  ticker: null | string,
+  longName: null | string,
+|};
 export type TokenInsert = {|
   /** different blockchains can support native multi-asset */
   NetworkId: number,
   Digest: number,
+  /**
+   * For Ergo, this is the tokenId (box id of first input in tx)
+   * for  Cardano, this is policyId || assetName
+   * Note: empty string for primary token for chain
+  */
   Identifier: string,
+  Metadata: {|
+    +type: 'Ergo',
+    /**
+     * This field is just an optimization for rollbacks
+     * With this, we just need to check if the most recent metadata exists
+     * and if we need to rollback, rollback in descending order
+     * note: null -> not in the chain (possible rolled back)
+     * note: 0 for ERG
+    */
+    +height: number | null,
+    // empty string for ERG
+    +boxId: string,
+    // based on https://github.com/ergoplatform/eips/blob/master/eip-0004.md
+    ...CommonMetadata,
+    +description: null | string,
+  |} | {|
+    +type: 'Cardano',
+    // empty string for ADA
+    +policyId: string,
+    // empty string for ADA
+    +assetName: string,
+    ...CommonMetadata,
+  |},
 |};
 export type TokenRow = {|
   TokenId: number,
@@ -484,6 +517,7 @@ export const TokenSchema: {|
     NetworkId: 'NetworkId',
     Digest: 'Digest',
     Identifier: 'Identifier',
+    Metadata: 'Metadata',
   }
 };
 
@@ -604,7 +638,11 @@ export const populatePrimitivesDb = (schemaBuilder: lf$schema$Builder) => {
       'Block_Digest_Index',
       ([BlockSchema.properties.Digest]: Array<string>),
       false // not unique. There is a (very small) chance of collisions
-    );
+    ).addIndex(
+      'Block_Height_Index',
+      ([BlockSchema.properties.Height]: Array<string>),
+      false
+    );;
 
   // Transaction table
   schemaBuilder.createTable(TransactionSchema.name)
@@ -737,7 +775,8 @@ export const populatePrimitivesDb = (schemaBuilder: lf$schema$Builder) => {
     .addColumn(TokenSchema.properties.TokenId, Type.INTEGER)
     .addColumn(TokenSchema.properties.NetworkId, Type.INTEGER)
     .addColumn(TokenSchema.properties.Identifier, Type.STRING)
-    .addColumn(BlockSchema.properties.Digest, Type.NUMBER)
+    .addColumn(TokenSchema.properties.Digest, Type.NUMBER)
+    .addColumn(TokenSchema.properties.Metadata, Type.OBJECT)
     .addPrimaryKey(
       ([TokenSchema.properties.TokenId]: Array<string>),
       true

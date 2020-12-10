@@ -1,5 +1,11 @@
 // @flow
 
+/**
+ * we use an empty string to represent the ID of the primary currency for a chain
+ * as this is easier than use null (which requires null checks everywhere
+ */
+export const PRIMARY_ASSET_CONSTANT = '';
+
 export const CoreAddressTypes = Object.freeze({
   CARDANO_LEGACY: 0,
   CARDANO_BASE: 1,

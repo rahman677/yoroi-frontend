@@ -52,6 +52,7 @@ import {
 import type {
   HistoryFunc,
   BestBlockFunc,
+  AssetInfoFunc,
   SendFunc, SignedResponse,
 } from './lib/state-fetch/types';
 import type {
@@ -117,6 +118,7 @@ export type GetTransactionRowsToExportFunc = (
 export type ErgoGetTransactionsRequest = {|
   getTransactionsHistoryForAddresses: HistoryFunc,
   checkAddressesInUse: FilterFunc,
+  getAssetInfo: AssetInfoFunc,
   getBestBlock: BestBlockFunc,
 |};
 
@@ -249,6 +251,7 @@ export default class ErgoApi {
           request.publicDeriver,
           request.checkAddressesInUse,
           request.getTransactionsHistoryForAddresses,
+          request.getAssetInfo,
           request.getBestBlock,
         );
       }

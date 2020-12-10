@@ -19,6 +19,7 @@ import {
   genCheckAddressesInUse,
   genGetTransactionsHistoryForAddresses,
   genGetBestBlock,
+  genGetAssetInfo,
   getErgoAddress,
 } from '../../../state-fetch/mockNetwork';
 import {
@@ -75,7 +76,8 @@ const networkTransactions: void => Array<RemoteErgoTransaction> = () => [{
       outputIndex: 0,
       spendingProof: '', // no need just for tests I think
       outputTransactionId: '9c8d3c4fe576f8c99d8ad6ba5d889f5a9f2d7fe07dc17b3f425f5d17696f3d20',
-      transactionId: '29f2fe214ec2c9b05773a689eca797e903adeaaf51dfe20782a4bf401e7ed545'
+      transactionId: '29f2fe214ec2c9b05773a689eca797e903adeaaf51dfe20782a4bf401e7ed545',
+      assets: [],
     }
   ],
   dataInputs: [],
@@ -161,7 +163,8 @@ const nextRegularSpend: void => RemoteErgoTransaction = () => ({
       outputIndex: 0,
       spendingProof: '', // no need just for tests I think
       outputTransactionId: '29f2fe214ec2c9b05773a689eca797e903adeaaf51dfe20782a4bf401e7ed545',
-      transactionId: '29f2fe214ec2c9b05773a689eca797e903adeaaf51dfe20782a4bf401e7ed546'
+      transactionId: '29f2fe214ec2c9b05773a689eca797e903adeaaf51dfe20782a4bf401e7ed546',
+      assets: [],
     }
   ],
   dataInputs: [],
@@ -237,6 +240,7 @@ async function syncingSimpleTransaction(): Promise<void> {
     network,
   ));
   const getBestBlock = genGetBestBlock(txHistory);
+  const getAssetInfo = genGetAssetInfo(txHistory);
 
   const withDisplayCutoff = asDisplayCutoff(publicDeriver);
   if (!withDisplayCutoff) throw new Error('missing display cutoff functionality');
@@ -257,6 +261,7 @@ async function syncingSimpleTransaction(): Promise<void> {
       basePubDeriver,
       checkAddressesInUse,
       getTransactionsHistoryForAddresses,
+      getAssetInfo,
       getBestBlock,
     );
 
@@ -343,6 +348,7 @@ async function syncingSimpleTransaction(): Promise<void> {
       basePubDeriver,
       checkAddressesInUse,
       getTransactionsHistoryForAddresses,
+      getAssetInfo,
       getBestBlock,
     );
 
