@@ -18,10 +18,13 @@ import type {
   TransferTx
 } from '../../../../types/TransferTypes';
 import { RustModule } from '../../lib/cardanoCrypto/rustLoader';
-import { getAdaCurrencyMeta } from '../../currencyInfo';
 import type {
   Address, Addressing,
 } from '../../lib/storage/models/PublicDeriver/interfaces';
+import {
+  MultiToken,
+} from '../../../common/lib/MultiToken';
+import { PRIMARY_ASSET_CONSTANTS } from '../../lib/storage/database/primitives/enums';
 
 /**
  * Generate transaction including all addresses with no change.
@@ -45,12 +48,15 @@ export async function buildYoroiTransferTx(payload: {|
   try {
     const { senderUtxos, } = payload;
 
-    const totalBalance = senderUtxos
-      .map(utxo => new BigNumber(utxo.amount))
-      .reduce(
-        (acc, amount) => acc.plus(amount),
-        new BigNumber(0)
-      );
+    const totalBalance = new MultiToken([{
+      identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+      amount: senderUtxos
+        .map(utxo => new BigNumber(utxo.amount))
+        .reduce(
+          (acc, amount) => acc.plus(amount),
+          new BigNumber(0)
+        )
+    }]);
 
     // first build a transaction to see what the fee will be
     const unsignedTxResponse = sendAllUnsignedTx(
@@ -59,9 +65,13 @@ export async function buildYoroiTransferTx(payload: {|
       payload.absSlotNumber,
       payload.protocolParams,
     );
-    const fee = new BigNumber(
-      unsignedTxResponse.txBuilder.get_fee_if_set()?.to_str() || '0'
-    ).plus(unsignedTxResponse.txBuilder.get_deposit().to_str());
+
+    const fee = new MultiToken([{
+      identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+      amount: new BigNumber(
+        unsignedTxResponse.txBuilder.get_fee_if_set()?.to_str() || '0'
+      ).plus(unsignedTxResponse.txBuilder.get_deposit().to_str())
+    }]);
 
     // sign inputs
     const signedTx = signTransaction(
@@ -77,11 +87,10 @@ export async function buildYoroiTransferTx(payload: {|
       undefined,
     );
 
-    const lovelacesPerAda = new BigNumber(10).pow(getAdaCurrencyMeta().decimalPlaces);
     // return summary of transaction
     return {
-      recoveredBalance: totalBalance.dividedBy(lovelacesPerAda),
-      fee: fee.dividedBy(lovelacesPerAda),
+      recoveredBalance: totalBalance,
+      fee,
       id: Buffer.from(
         RustModule.WalletV4.hash_transaction(signedTx.body()).to_bytes()
       ).toString('hex'),

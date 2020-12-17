@@ -4,6 +4,9 @@ import type {
   DbTransaction,
   DbBlock,
 } from '../../../ada/lib/storage/database/primitives/tables';
+import {
+  PRIMARY_ASSET_CONSTANTS,
+} from '../../../ada/lib/storage/database/primitives/enums';
 import type {
   UserAnnotation,
 } from '../../../ada/transactions/types';
@@ -38,8 +41,14 @@ export function convertErgoTransactionsToExportRows(
       result.push({
         date: tx.block.BlockTime,
         type: tx.type === transactionTypes.INCOME ? 'in' : 'out',
-        amount: formatBigNumberToFloatString(tx.amount.abs().dividedBy(amountPerUnit)),
-        fee: formatBigNumberToFloatString(tx.fee.abs().dividedBy(amountPerUnit)),
+        amount: formatBigNumberToFloatString(
+          tx.amount.get(PRIMARY_ASSET_CONSTANTS.Ergo)?.abs().dividedBy(amountPerUnit)
+            || new BigNumber(0)
+        ),
+        fee: formatBigNumberToFloatString(
+          tx.fee.get(PRIMARY_ASSET_CONSTANTS.Ergo)?.abs().dividedBy(amountPerUnit)
+            || new BigNumber(0)
+        ),
       });
     }
   }
@@ -56,7 +65,7 @@ export function asAddressedUtxo(
 ): Array<ErgoAddressedUtxo> {
   return utxos.map(utxo => {
     const output = utxo.output.UtxoTransactionOutput;
-    const tokens = tokenMap.get(output.UtxoTransactionOutputId);
+    const tokens = tokenMap.get(output.TokenListId);
     if (
       output.ErgoCreationHeight == null ||
       output.ErgoBoxId == null ||
@@ -64,17 +73,24 @@ export function asAddressedUtxo(
     ) {
       throw new Error(`${nameof(asAddressedUtxo)} missing Ergo fields for Ergo UTXO`);
     }
+    const { ErgoCreationHeight, ErgoBoxId, ErgoTree } = output;
+    if (tokens == null) throw new Error(`${nameof(asAddressedUtxo)} no tokens for output`);
+    const primaryAssetIndex = tokens.findIndex(
+      token => token.tokenId === PRIMARY_ASSET_CONSTANTS.Ergo
+    );
+    // get the primary asset and remove it from the token list
+    const primaryAsset = tokens.splice(primaryAssetIndex, 1)[0];
     return {
-      amount: output.Amount,
+      amount: primaryAsset.amount.toString(),
       receiver: utxo.address,
       tx_hash: utxo.output.Transaction.Hash,
       tx_index: utxo.output.UtxoTransactionOutput.OutputIndex,
       addressing: utxo.addressing,
-      creationHeight: output.ErgoCreationHeight,
-      boxId: output.ErgoBoxId,
+      creationHeight: ErgoCreationHeight,
+      boxId: ErgoBoxId,
       assets: tokens,
       additionalRegisters: undefined, // TODO
-      ergoTree: output.ErgoTree,
+      ergoTree: ErgoTree,
     };
   });
 }

@@ -18,6 +18,7 @@ import type {
   AddressRow,
   ErgoTransactionInsert,
   TokenRow,
+  TokenListInsert,
 } from '../../../../ada/lib/storage/database/primitives/tables';
 import {
   TransactionType,
@@ -36,6 +37,7 @@ import {
   GetTxAndBlock,
   GetKeyDerivation,
   GetToken,
+  AssociateToken,
 } from '../../../../ada/lib/storage/database/primitives/api/read';
 import {
   ModifyAddress,
@@ -52,6 +54,7 @@ import {
   GetUtxoTxOutputsWithTx,
   GetUtxoInputs,
   AssociateTxWithUtxoIOs,
+  createTokenListIdGenFunction,
 } from '../../../../ada/lib/storage/database/transactionModels/utxo/api/read';
 import {
   ErgoAssociateTxWithIOs,
@@ -61,11 +64,10 @@ import type {
 } from '../../../../ada/transactions/types';
 import type {
   UtxoTransactionInputInsert, UtxoTransactionOutputInsert,
-  TokenListInsert,
 } from '../../../../ada/lib/storage/database/transactionModels/utxo/tables';
 import {
   TxStatusCodes,
-  PRIMARY_ASSET_CONSTANT,
+  PRIMARY_ASSET_CONSTANTS,
 } from '../../../../ada/lib/storage/database/primitives/enums';
 import {
   asScanAddresses, asHasLevels,
@@ -109,7 +111,7 @@ import type {
 import type {
   FilterFunc,
 } from '../../../../common/lib/state-fetch/currencySpecificTypes';
-import { getErgoBaseConfig, } from '../../../../ada/lib/storage/database/prepackaged/networks';
+import { defaultAssets, getErgoBaseConfig, } from '../../../../ada/lib/storage/database/prepackaged/networks';
 
 async function rawGetAllTxIds(
   db: lf$Database,
@@ -206,9 +208,11 @@ export async function rawGetTransactions(
   }
   const txsWithIOs = await deps.ErgoAssociateTxWithIOs.getIOsForTx(
     db, dbTx,
-    { txs: txs
-      .map(txWithBlock => txWithBlock.Transaction)
-      .filter(tx => tx.Type === TransactionType.Ergo)
+    {
+      txs: txs
+        .map(txWithBlock => txWithBlock.Transaction)
+        .filter(tx => tx.Type === TransactionType.Ergo),
+      networkId: request.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }
   );
 
@@ -242,6 +246,7 @@ export async function rawGetTransactions(
     ...tx,
     block: blockMap.get(tx.transaction.TransactionId) || null,
     ...getFromUserPerspective({
+      tokens: tx.tokens,
       utxoInputs: tx.utxoInputs,
       utxoOutputs: tx.utxoOutputs.filter(output => (
         // in Ergo, fees are explicit as an output
@@ -416,7 +421,10 @@ export async function rawGetForeignAddresses(
 
   const txsWithIOs = await deps.ErgoAssociateTxWithIOs.getIOsForTx(
     db, dbTx,
-    { txs: fullTxs.filter(tx => tx.Type === TransactionType.Ergo) }
+    {
+      txs: fullTxs.filter(tx => tx.Type === TransactionType.Ergo),
+      networkId: request.publicDeriver.getParent().getNetworkInfo().NetworkId,
+    }
   );
 
   const allAddressIds = txsWithIOs.flatMap(txWithIO => [
@@ -637,6 +645,7 @@ export async function updateTransactions(
       GetKeyDerivation,
       ModifyToken,
       GetToken,
+      AssociateToken,
     });
     const updateTables = Object
       .keys(updateDepTables)
@@ -835,6 +844,7 @@ async function rollback(
       allTxIds: txIds,
       isUnspent: true,
       TransactionSeed,
+      networkId: request.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }
   );
 
@@ -903,6 +913,7 @@ async function rawUpdateTransactions(
     GetKeyDerivation: Class<GetKeyDerivation>,
     ModifyToken: Class<ModifyToken>,
     GetToken: Class<GetToken>,
+    AssociateToken: Class<AssociateToken>,
   |},
   publicDeriver: IPublicDeriver<>,
   lastSyncInfo: $ReadOnly<LastSyncInfoRow>,
@@ -1015,6 +1026,7 @@ async function rawUpdateTransactions(
         ModifyErgoTx: deps.ModifyErgoTx,
         ModifyToken: deps.ModifyToken,
         GetToken: deps.GetToken,
+        AssociateToken: deps.AssociateToken,
       },
       {
         network: publicDeriver.getParent().getNetworkInfo(),
@@ -1063,6 +1075,7 @@ export async function updateTransactionBatch(
     ModifyErgoTx: Class<ModifyErgoTx>,
     ModifyToken: Class<ModifyToken>,
     GetToken: Class<GetToken>,
+    AssociateToken: Class<AssociateToken>,
   |},
   request: {|
     network: $ReadOnly<NetworkRow>,
@@ -1089,7 +1102,10 @@ export async function updateTransactionBatch(
     const txs: Array<$ReadOnly<TransactionRow>> = Array.from(matchByDigest.values());
     const txsWithIOs = await deps.ErgoAssociateTxWithIOs.getIOsForTx(
       db, dbTx,
-      { txs: txs.filter(tx => tx.Type === TransactionType.Ergo) }
+      {
+        txs: txs.filter(tx => tx.Type === TransactionType.Ergo),
+        networkId: request.network.NetworkId,
+      }
     );
     for (const tx of txsWithIOs) {
       matchesInDb.set(tx.transaction.Hash, tx);
@@ -1154,7 +1170,7 @@ export async function updateTransactionBatch(
   }
 
   // 2) Add any new assets & lookup known ones
-  const assetLookup = await genAssetMap(
+  const assetLookup = await genErgoAssetMap(
     db, dbTx,
     {
       ModifyToken: deps.ModifyToken,
@@ -1165,7 +1181,11 @@ export async function updateTransactionBatch(
     request.network,
   );
 
-  // 2) Add new transactions
+  // 3) Add new transactions
+  const genNextTokenListId = await createTokenListIdGenFunction(
+    db, dbTx,
+    { AssociateToken: deps.AssociateToken }
+  );
   const { ergoTxs, } = await networkTxToDbTx(
     db,
     dbTx,
@@ -1176,6 +1196,7 @@ export async function updateTransactionBatch(
     TransactionSeed,
     BlockSeed,
     assetLookup,
+    genNextTokenListId,
   );
   const newsTxsIdSet = new Set();
   for (const newTx of ergoTxs) {
@@ -1192,13 +1213,12 @@ export async function updateTransactionBatch(
         transaction: result.transaction,
         utxoInputs: result.utxoInputs,
         utxoOutputs: result.utxoOutputs,
-        utxoTokenInputs: result.utxoTokenInputs,
-        utxoTokenOutputs: result.utxoTokenOutputs,
+        tokens: result.tokens,
       });
     }
   }
 
-  // 3) Update UTXO set
+  // 4) Update UTXO set
 
   const newTxIds = txsAddedToBlock.map(tx =>  tx.transaction.TransactionId);
   await markAllInputs(
@@ -1216,10 +1236,11 @@ export async function updateTransactionBatch(
       ],
       isUnspent: false,
       TransactionSeed,
+      networkId: request.network.NetworkId,
     }
   );
 
-  // 4) Mark any pending tx that is not found by remote as failed
+  // 5) Mark any pending tx that is not found by remote as failed
 
   const pendingTxs = await deps.GetTransaction.withStatus(
     db, dbTx,
@@ -1258,21 +1279,44 @@ function genErgoIOGen(
   networkId: number,
   getAddressIdOrThrow: string => number,
   getAssetInfoOrThrow: string => $ReadOnly<TokenRow>,
+  genNextTokenListId: void => number,
 ): (number => {|
-  utxoInputs: Array<{|
-    input: UtxoTransactionInputInsert,
-    tokenList: Array<{| UtxoTransactionInputId: number |} => TokenListInsert>,
-  |}>,
-  utxoOutputs: Array<{|
-    utxo: UtxoTransactionOutputInsert,
-    tokenList: Array<{| UtxoTransactionOutputId: number |} => TokenListInsert>,
+  utxoInputs: Array<UtxoTransactionInputInsert>,
+  utxoOutputs: Array<UtxoTransactionOutputInsert>,
+  tokenList: Array<{|
+    TokenList: TokenListInsert,
+    identifier: string,
   |}>,
 |}) {
   return (txRowId) => {
     const utxoInputs = [];
     const utxoOutputs = [];
+    const tokenList = [];
     for (let i = 0; i < remoteTx.inputs.length; i++) {
       const input = remoteTx.inputs[i];
+
+      const listId = genNextTokenListId();
+      // 1) Add ERG
+      tokenList.push({
+        TokenList: {
+          Amount: input.value.toString(),
+          ListId: listId,
+          TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Ergo).TokenId,
+        },
+        identifier: PRIMARY_ASSET_CONSTANTS.Ergo,
+      });
+      // 2) Add tokens
+      for (let tokenIndex = 0; tokenIndex < input.assets.length; tokenIndex++) {
+        const assetInfo = getAssetInfoOrThrow(input.assets[tokenIndex].tokenId);
+        tokenList.push({
+          TokenList: {
+            Amount: input.assets[tokenIndex].amount.toString(),
+            ListId: listId,
+            TokenId: assetInfo.TokenId,
+          },
+          identifier: input.assets[tokenIndex].tokenId,
+        });
+      }
 
       const inputEntry = {
         TransactionId: txRowId,
@@ -1280,33 +1324,41 @@ function genErgoIOGen(
         ParentTxHash: input.outputTransactionId,
         IndexInParentTx: input.outputIndex,
         IndexInOwnTx: i,
-        Amount: input.value.toString(),
+        TokenListId: listId,
       };
-
-      const tokenList = [];
-      for (let tokenIndex = 0; tokenIndex < input.assets.length; tokenIndex++) {
-        const assetInfo = getAssetInfoOrThrow(input.assets[tokenIndex].tokenId);
-        tokenList.push(({ UtxoTransactionInputId }) => ({
-          UtxoTransactionOutputId: null,
-          UtxoTransactionInputId,
-          Amount: input.assets[tokenIndex].amount.toString(),
-          Index: tokenIndex,
-          TokenId: assetInfo.TokenId,
-        }));
-      }
-      utxoInputs.push({
-        input: inputEntry,
-        tokenList,
-      });
+      utxoInputs.push(inputEntry);
     }
     for (let i = 0; i < remoteTx.outputs.length; i++) {
       const output = remoteTx.outputs[i];
+
+      const listId = genNextTokenListId();
+      // 1) Add ERG
+      tokenList.push({
+        TokenList: {
+          Amount: output.value.toString(),
+          ListId: listId,
+          TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Ergo).TokenId,
+        },
+        identifier: PRIMARY_ASSET_CONSTANTS.Ergo,
+      });
+      // 2) Add tokens
+      for (let tokenIndex = 0; tokenIndex < output.assets.length; tokenIndex++) {
+        const assetInfo = getAssetInfoOrThrow(output.assets[tokenIndex].tokenId);
+        tokenList.push({
+          TokenList: {
+            Amount: output.assets[tokenIndex].amount.toString(),
+            ListId: listId,
+            TokenId: assetInfo.TokenId,
+          },
+          identifier: output.assets[tokenIndex].tokenId,
+        });
+      }
 
       const utxo = {
         TransactionId: txRowId,
         AddressId: getAddressIdOrThrow(output.address),
         OutputIndex: i,
-        Amount: output.value.toString(),
+        TokenListId: listId,
         /**
           * we assume unspent for now but it will be updated after if necessary
           * Note: if this output doesn't belong to you, it will be true forever
@@ -1317,32 +1369,18 @@ function genErgoIOGen(
         ErgoCreationHeight: output.creationHeight,
         ErgoTree: output.ergoTree,
       };
-
-      const tokenList = [];
-      for (let tokenIndex = 0; tokenIndex < output.assets.length; tokenIndex++) {
-        const assetInfo = getAssetInfoOrThrow(output.assets[tokenIndex].tokenId);
-        tokenList.push(({ UtxoTransactionOutputId }) => ({
-          UtxoTransactionOutputId,
-          UtxoTransactionInputId: null,
-          Amount: output.assets[tokenIndex].amount.toString(),
-          Index: tokenIndex,
-          TokenId: assetInfo.TokenId,
-        }));
-      }
-      utxoOutputs.push({
-        utxo,
-        tokenList,
-      });
+      utxoOutputs.push(utxo);
     }
 
     return {
       utxoInputs,
       utxoOutputs,
+      tokenList,
     };
   };
 }
 
-async function genAssetMap(
+async function genErgoAssetMap(
   db: lf$Database,
   dbTx: lf$Transaction,
   deps: {|
@@ -1354,6 +1392,7 @@ async function genAssetMap(
   network: $ReadOnly<NetworkRow>,
 ): Promise<Map<string, $ReadOnly<TokenRow>>> {
 
+  const primaryAssetConstants = defaultAssets.filter(asset => asset.NetworkId === network.NetworkId)
   const tokenIds = Array.from(new Set(newTxs.flatMap(tx => [
     ...tx.inputs
       .flatMap(input => input.assets)
@@ -1361,7 +1400,8 @@ async function genAssetMap(
     ...tx.outputs
       .flatMap(output => output.assets)
       .map(asset => asset.tokenId),
-    PRIMARY_ASSET_CONSTANT // force inclusion of primary token for chain
+    // force inclusion of primary token for chain
+    ...primaryAssetConstants.map(asset => asset.Identifier)
   ])));
 
   const existingDbRows = await deps.GetToken.fromIdentifier(
@@ -1413,6 +1453,7 @@ async function networkTxToDbTx(
   TransactionSeed: number,
   BlockSeed: number,
   assetLookup: Map<string, $ReadOnly<TokenRow>>,
+  genNextTokenListId: void => number,
 ): Promise<{|
   ergoTxs: Array<{|
     networkId: number,
@@ -1467,7 +1508,13 @@ async function networkTxToDbTx(
       networkId,
       block,
       transaction,
-      ioGen: genErgoIOGen(networkTx, networkId, getAddressIdOrThrow, getAssetInfoOrThrow),
+      ioGen: genErgoIOGen(
+        networkTx,
+        networkId,
+        getAddressIdOrThrow,
+        getAssetInfoOrThrow,
+        genNextTokenListId
+      ),
     });
   }
 
@@ -1489,6 +1536,7 @@ async function markAllInputs(
     allTxIds: Array<number>,
     isUnspent: boolean,
     TransactionSeed: number,
+    networkId: number,
     ...
   },
 ): Promise<void> {
@@ -1522,6 +1570,7 @@ async function markAllInputs(
         txId: parentTx.TransactionId,
         outputIndex: input.IndexInParentTx,
         isUnspent: request.isUnspent,
+        networkId: request.networkId,
       }
     );
   }

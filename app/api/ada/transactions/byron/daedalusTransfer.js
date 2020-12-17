@@ -22,10 +22,13 @@ import type {
 } from '../../../../types/TransferTypes';
 import type { AddressKeyMap } from '../types';
 import { RustModule } from '../../lib/cardanoCrypto/rustLoader';
-import { getAdaCurrencyMeta } from '../../currencyInfo';
 import type {
   Address, Addressing,
 } from '../../lib/storage/models/PublicDeriver/interfaces';
+import {
+  MultiToken,
+} from '../../../common/lib/MultiToken';
+import { PRIMARY_ASSET_CONSTANTS } from '../../lib/storage/database/primitives/enums';
 
 /**
  * Generate transaction including all addresses with no change.
@@ -48,12 +51,15 @@ export async function buildDaedalusTransferTx(payload: {|
   try {
     const { addressKeys, senderUtxos, } = payload;
 
-    const totalBalance = senderUtxos
-      .map(utxo => new BigNumber(utxo.amount))
-      .reduce(
-        (acc, amount) => acc.plus(amount),
-        new BigNumber(0)
-      );
+    const totalBalance = new MultiToken([{
+      identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+      amount: senderUtxos
+        .map(utxo => new BigNumber(utxo.amount))
+        .reduce(
+          (acc, amount) => acc.plus(amount),
+          new BigNumber(0)
+        )
+    }]);
 
     // build tx
     const unsignedTxResponse = sendAllUnsignedTxFromUtxo(
@@ -62,9 +68,12 @@ export async function buildDaedalusTransferTx(payload: {|
       payload.absSlotNumber,
       payload.protocolParams,
     );
-    const fee = new BigNumber(
-      unsignedTxResponse.txBuilder.get_fee_if_set()?.to_str() || '0'
-    ).plus(unsignedTxResponse.txBuilder.get_deposit().to_str());
+    const fee = new MultiToken([{
+      identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+      amount: new BigNumber(
+        unsignedTxResponse.txBuilder.get_fee_if_set()?.to_str() || '0'
+      ).plus(unsignedTxResponse.txBuilder.get_deposit().to_str())
+    }]);
 
     // sign
     const signedTx = signDaedalusTransaction(
@@ -72,11 +81,10 @@ export async function buildDaedalusTransferTx(payload: {|
       addressKeys,
     );
 
-    const lovelacesPerAda = new BigNumber(10).pow(getAdaCurrencyMeta().decimalPlaces);
     // return summary of transaction
     return {
-      recoveredBalance: totalBalance.dividedBy(lovelacesPerAda),
-      fee: fee.dividedBy(lovelacesPerAda),
+      recoveredBalance: totalBalance,
+      fee,
       id: Buffer.from(
         RustModule.WalletV4.hash_transaction(signedTx.body()).to_bytes()
       ).toString('hex'),

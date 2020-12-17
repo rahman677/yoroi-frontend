@@ -20,6 +20,7 @@ import type {
   DbBlock,
   NetworkInsert, NetworkRow,
   TokenInsert, TokenRow,
+  TokenListInsert, TokenListRow,
 } from '../tables';
 import type {
   CoreAddressT,
@@ -705,5 +706,28 @@ export class ModifyToken {
       ...knownTokens,
       ...newlyAdded,
     ];
+  }
+}
+
+export class ModifyTokenList {
+  static ownTables: {|
+    TokenList: typeof Tables.TokenListSchema,
+  |} = Object.freeze({
+    [Tables.TokenListSchema.name]: Tables.TokenListSchema,
+  });
+  static depTables: {||} = Object.freeze({});
+
+  static async upsert(
+    db: lf$Database,
+    tx: lf$Transaction,
+    rows: $ReadOnlyArray<TokenListInsert>,
+  ): Promise<$ReadOnlyArray<$ReadOnly<TokenListRow>>> {
+    const result = await addOrReplaceRows<TokenListInsert, TokenListRow>(
+      db, tx,
+      rows,
+      ModifyTokenList.ownTables[Tables.TokenListSchema.name].name,
+    );
+
+    return result;
   }
 }

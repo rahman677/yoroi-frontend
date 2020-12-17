@@ -20,7 +20,6 @@ import type {
   TransferTx
 } from '../../../../../types/TransferTypes';
 import { RustModule } from '../../../../ada/lib/cardanoCrypto/rustLoader';
-import { getJormungandrCurrencyMeta } from '../../../currencyInfo';
 import { networks } from '../../../../ada/lib/storage/database/prepackaged/networks';
 import type {
   AddressUtxoFunc,
@@ -30,6 +29,10 @@ import type {
 } from '../../../../ada/lib/storage/models/PublicDeriver/interfaces';
 import { toSenderUtxos } from '../../../../ada/transactions/transfer/utils';
 import type { NetworkRow, JormungandrFeeConfig } from '../../../../ada/lib/storage/database/primitives/tables';
+import {
+  MultiToken,
+} from '../../../../common/lib/MultiToken';
+import { PRIMARY_ASSET_CONSTANTS } from '../../../../ada/lib/storage/database/primitives/enums';
 
 /**
  * Generate transaction including all addresses with no change.
@@ -46,12 +49,15 @@ export async function buildYoroiTransferTx(payload: {|
   try {
     const { senderUtxos, outputAddr, } = payload;
 
-    const totalBalance = senderUtxos
-      .map(utxo => new BigNumber(utxo.amount))
-      .reduce(
-        (acc, amount) => acc.plus(amount),
-        new BigNumber(0)
-      );
+    const totalBalance = new MultiToken([{
+      identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+      amount: senderUtxos
+        .map(utxo => new BigNumber(utxo.amount))
+        .reduce(
+          (acc, amount) => acc.plus(amount),
+          new BigNumber(0)
+        )
+    }]);
 
     // first build a transaction to see what the fee will be
     const unsignedTxResponse = sendAllUnsignedTx(
@@ -60,7 +66,7 @@ export async function buildYoroiTransferTx(payload: {|
       undefined,
       payload.feeConfig
     );
-    const fee = getJormungandrTxFee(unsignedTxResponse.IOs, false);
+    const fee = getJormungandrTxFee(unsignedTxResponse.IOs);
 
     // sign inputs
     const fragment = signTransaction(
@@ -74,11 +80,10 @@ export async function buildYoroiTransferTx(payload: {|
 
     const uniqueSenders = Array.from(new Set(senderUtxos.map(utxo => utxo.receiver)));
 
-    const lovelacesPerAda = new BigNumber(10).pow(getJormungandrCurrencyMeta().decimalPlaces);
     // return summary of transaction
     return {
-      recoveredBalance: totalBalance.dividedBy(lovelacesPerAda),
-      fee: fee.dividedBy(lovelacesPerAda),
+      recoveredBalance: totalBalance,
+      fee,
       id: Buffer.from(fragment.id().as_bytes()).toString('hex'),
       encodedTx: fragment.as_bytes(),
       // recall: some addresses may be legacy, some may be Shelley

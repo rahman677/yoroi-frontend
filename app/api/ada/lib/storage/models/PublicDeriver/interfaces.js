@@ -22,6 +22,7 @@ import type {
   CanonicalAddressInsert,
   CanonicalAddressRow,
   KeyDerivationRow,
+  TokenRow,
 } from '../../database/primitives/tables';
 import type { PublicDeriverRow, LastSyncInfoRow, } from '../../database/walletTypes/core/tables';
 
@@ -63,18 +64,14 @@ import type {
   TreeInsert,
 } from '../../database/walletTypes/common/utils';
 import type { Bip44ChainInsert } from '../../database/walletTypes/common/tables';
+import { MultiToken } from '../../../../../common/lib/MultiToken';
 
 export type Address = {|
   +address: string,
 |};
 
 export type Value = {|
-  /**
-   * note: an undefined value is different than a value of 0
-   * since you can have a UTXO with a value of 0
-   * which is different from having no UTXO at all
-   */
-  +value: void | BigNumber,
+  +values: MultiToken,
 |};
 export type Addressing = {|
   +addressing: {|
@@ -284,7 +281,10 @@ export interface IHasUtxoChains {
 }
 
 export type IGetUtxoBalanceRequest = void;
-export type IGetUtxoBalanceResponse = BigNumber;
+export type IGetUtxoBalanceResponse = Array<{|
+  Token: $ReadOnly<TokenRow>,
+  amount: BigNumber,
+|}>;
 export type IGetUtxoBalanceFunc = (
   body: IGetUtxoBalanceRequest
 ) => Promise<IGetUtxoBalanceResponse>;

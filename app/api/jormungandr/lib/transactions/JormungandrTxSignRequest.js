@@ -4,7 +4,10 @@ import BigNumber from 'bignumber.js';
 import { ISignRequest } from '../../../common/lib/transactions/ISignRequest';
 import type { BaseSignRequest } from '../../../ada/transactions/types';
 import { RustModule } from '../../../ada/lib/cardanoCrypto/rustLoader';
-import { getJormungandrCurrencyMeta } from '../../currencyInfo';
+import {
+  MultiToken,
+} from '../../../common/lib/MultiToken';
+import { PRIMARY_ASSET_CONSTANTS } from '../../../ada/lib/storage/database/primitives/enums';
 
 export class JormungandrTxSignRequest implements ISignRequest<RustModule.WalletV3.InputOutput> {
 
@@ -14,16 +17,16 @@ export class JormungandrTxSignRequest implements ISignRequest<RustModule.WalletV
     this.signRequest = signRequest;
   }
 
-  totalInput(shift: boolean): BigNumber {
-    return getTxInputTotal(this.signRequest.unsignedTx, shift);
+  totalInput(): MultiToken {
+    return getTxInputTotal(this.signRequest.unsignedTx);
   }
 
-  totalOutput(shift: boolean): BigNumber {
-    return getTxOutputTotal(this.signRequest.unsignedTx, shift);
+  totalOutput(): MultiToken {
+    return getTxOutputTotal(this.signRequest.unsignedTx);
   }
 
-  fee(shift: boolean): BigNumber {
-    return getJormungandrTxFee(this.signRequest.unsignedTx, shift);
+  fee(): MultiToken {
+    return getJormungandrTxFee(this.signRequest.unsignedTx);
   }
 
   uniqueSenderAddresses(): Array<string> {
@@ -63,51 +66,43 @@ export class JormungandrTxSignRequest implements ISignRequest<RustModule.WalletV
 
 export function getTxInputTotal(
   IOs: RustModule.WalletV3.InputOutput,
-  shift: boolean
-): BigNumber {
-  let sum = new BigNumber(0);
+): MultiToken {
+  const values = new MultiToken([]);
 
   const inputs = IOs.inputs();
   for (let i = 0; i < inputs.size(); i++) {
     const input = inputs.get(i);
-    const value = new BigNumber(input.value().to_str());
-    sum = sum.plus(value);
+    values.add({
+      identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+      amount: new BigNumber(input.value().to_str())
+    });
   }
-  if (shift) {
-    return sum.shiftedBy(-getJormungandrCurrencyMeta().decimalPlaces.toNumber());
-  }
-  return sum;
+  return values;
 }
 
 export function getTxOutputTotal(
   IOs: RustModule.WalletV3.InputOutput,
-  shift: boolean
-): BigNumber {
-  let sum = new BigNumber(0);
+): MultiToken {
+  const values = new MultiToken([]);
 
   const outputs = IOs.outputs();
   for (let i = 0; i < outputs.size(); i++) {
     const output = outputs.get(i);
-    const value = new BigNumber(output.value().to_str());
-    sum = sum.plus(value);
+    values.add({
+      identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+      amount: new BigNumber(output.value().to_str())
+    });
   }
-  if (shift) {
-    return sum.shiftedBy(-getJormungandrCurrencyMeta().decimalPlaces.toNumber());
-  }
-  return sum;
+  return values;
 }
 
 export function getJormungandrTxFee(
   IOs: RustModule.WalletV3.InputOutput,
-  shift: boolean,
-): BigNumber {
-  const out = getTxOutputTotal(IOs, false);
-  const ins = getTxInputTotal(IOs, false);
-  const result = ins.minus(out);
-  if (shift) {
-    return result.shiftedBy(-getJormungandrCurrencyMeta().decimalPlaces.toNumber());
-  }
-  return result;
+): MultiToken {
+  const out = getTxOutputTotal(IOs);
+  const ins = getTxInputTotal(IOs);
+
+  return ins.joinSubtractMutable(out);
 }
 
 export function jormungandrTxEqual(

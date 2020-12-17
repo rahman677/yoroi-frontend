@@ -103,7 +103,7 @@ import {
 import {
   getAllAddressesForDisplay,
 } from '../ada/lib/storage/bridge/traitUtils';
-import { convertAdaTransactionsToExportRows } from '../ada/transactions/utils';
+import { convertJormungandrTransactionsToExportRows } from './lib/transactions/utils';
 import { v3PublicToV2, v4Bip32PrivateToV3, derivePrivateByAddressing } from './lib/crypto/utils';
 import type { TransactionExportRow } from '../export';
 
@@ -911,7 +911,7 @@ export default class JormungandrApi {
         publicDeriver: request.publicDeriver,
       });
       Logger.debug(`${nameof(JormungandrApi)}::${nameof(this.getTransactionRowsToExport)}: success`);
-      return convertAdaTransactionsToExportRows(fetchedTxs.txs);
+      return convertJormungandrTransactionsToExportRows(fetchedTxs.txs);
     } catch (error) {
       Logger.error(`${nameof(JormungandrApi)}::${nameof(this.getTransactionRowsToExport)}: ` + stringifyError(error));
 

@@ -476,7 +476,8 @@ export type TokenInsert = {|
   /**
    * For Ergo, this is the tokenId (box id of first input in tx)
    * for  Cardano, this is policyId || assetName
-   * Note: empty string for primary token for chain
+   * Note: we don't use null for the primary token of the chain
+   * As some blockchains have multiple primary tokens
   */
   Identifier: string,
   Metadata: {|
@@ -521,8 +522,45 @@ export const TokenSchema: {|
   }
 };
 
+export type TokenListInsert = {|
+  ListId: number,
+  TokenId: number,
+  Amount: string,
+|};
+export type TokenListRow = {|
+  TokenListItemId: number,
+  ...TokenListInsert,
+|};
+/**
+ * For outputs that belong to you,
+ * utxo outputs are a super-set of inputs because for an address to be an input,
+ * it must have received coins (been an output) previously
+ */
+export const TokenListSchema: {|
+  +name: 'TokenList',
+  properties: $ObjMapi<TokenListRow, ToSchemaProp>,
+|} = {
+  name: 'TokenList',
+  properties: {
+    TokenListItemId: 'TokenListItemId',
+    ListId: 'ListId',
+    TokenId: 'TokenId',
+    Amount: 'Amount',
+  }
+};
+
 export type DbTransaction = {|
   +transaction: $ReadOnly<TransactionRow>,
+|};
+
+export type DbTokenInfo = {|
+  +tokens: $ReadOnlyArray<{|
+    +TokenList: $ReadOnly<TokenListRow>,
+    +Token: $ReadOnly<{|
+      TokenId: number,
+      Identifier: string,
+    |}>,
+  |}>
 |};
 
 export const populatePrimitivesDb = (schemaBuilder: lf$schema$Builder) => {
@@ -794,5 +832,26 @@ export const populatePrimitivesDb = (schemaBuilder: lf$schema$Builder) => {
        * easiest to achieve by using a testnet for the same blockchain
        */
       false
+    );
+
+  // TokenList Table
+  schemaBuilder.createTable(TokenListSchema.name)
+    .addColumn(TokenListSchema.properties.TokenListItemId, Type.INTEGER)
+    .addColumn(TokenListSchema.properties.ListId, Type.INTEGER)
+    .addColumn(TokenListSchema.properties.TokenId, Type.INTEGER)
+
+    .addColumn(TokenListSchema.properties.Amount, Type.STRING)
+    .addPrimaryKey(
+      ([TokenListSchema.properties.TokenListItemId]: Array<string>),
+      true
+    )
+    .addForeignKey('TokenList_Token', {
+      local: TokenListSchema.properties.TokenId,
+      ref: `${TokenSchema.name}.${TokenSchema.properties.TokenId}`,
+    })
+    .addIndex(
+      'TokenList_ListId',
+      ([TokenListSchema.properties.ListId]: Array<string>),
+      false // one list can contain multiple assets
     );
 };

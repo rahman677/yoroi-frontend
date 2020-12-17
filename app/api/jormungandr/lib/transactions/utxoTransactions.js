@@ -27,6 +27,10 @@ import {
   utxoToTxInput,
 } from './inputSelection';
 import type { JormungandrFeeConfig } from '../../../ada/lib/storage/database/primitives/tables';
+import {
+  MultiToken,
+} from '../../../common/lib/MultiToken';
+import { PRIMARY_ASSET_CONSTANTS } from '../../../ada/lib/storage/database/primitives/enums';
 
 type TxOutput = {|
   address: string,
@@ -290,7 +294,10 @@ function filterToUsedChange(
       if (indexInInput === -1) {
         change.push({
           ...changeAddr,
-          value: new BigNumber(val),
+          values: new MultiToken([{
+            identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+            amount: new BigNumber(val)
+          }]),
         });
       }
       // remove the duplicate and keep searching
@@ -388,7 +395,9 @@ export function asAddressedUtxo(
 ): Array<CardanoAddressedUtxo> {
   return utxos.map(utxo => {
     return {
-      amount: utxo.output.UtxoTransactionOutput.Amount,
+      amount: utxo.output.tokens.filter(
+        token => token.Token.Identifier === PRIMARY_ASSET_CONSTANTS.Jormungandr
+      )[0].TokenList.Amount,
       receiver: utxo.address,
       tx_hash: utxo.output.Transaction.Hash,
       tx_index: utxo.output.UtxoTransactionOutput.OutputIndex,

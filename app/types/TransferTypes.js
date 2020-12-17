@@ -1,5 +1,8 @@
 // @flow
 import BigNumber from 'bignumber.js';
+import {
+  MultiToken,
+} from '../api/common/lib/MultiToken';
 
 export const TransferStatus = Object.freeze({
   UNINITIALIZED: 0,
@@ -22,8 +25,8 @@ export type TransferStatusT = $Values<typeof TransferStatus>;
 /** Contains all information necessary to send and display the transfer transaction */
 // TODO: should probably delete this entire and just use ISignRequest for everything
 export type TransferTx = {|
-  +recoveredBalance: BigNumber, // TODO: remove
-  +fee: BigNumber,
+  +recoveredBalance: MultiToken, // TODO: remove
+  +fee: MultiToken,
   +senders: Array<string>,
   +receivers: Array<string>,
   +id?: string,

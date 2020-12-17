@@ -1,9 +1,24 @@
 // @flow
 
+import BigNumber from 'bignumber.js';
 import { RustModule } from '../../../ada/lib/cardanoCrypto/rustLoader';
 import type {
   JormungandrFeeConfig,
+  DbTransaction,
+  DbBlock,
 } from '../../../ada/lib/storage/database/primitives/tables';
+import type {
+  UserAnnotation,
+} from '../../../ada/transactions/types';
+import type { TransactionExportRow } from '../../../export';
+import { getJormungandrCurrencyMeta } from '../../currencyInfo';
+import {
+  transactionTypes,
+} from '../../../ada/transactions/types';
+import { formatBigNumberToFloatString } from '../../../../utils/formatters';
+import {
+  PRIMARY_ASSET_CONSTANTS,
+} from '../../../ada/lib/storage/database/primitives/enums';
 
 export function generateAuthData(
   bindingSignature: RustModule.WalletV3.AccountBindingSignature,
@@ -56,4 +71,33 @@ export function generateFee(
   );
 
   return feeAlgorithm;
+}
+
+export function convertJormungandrTransactionsToExportRows(
+  transactions: $ReadOnlyArray<$ReadOnly<{
+  ...DbTransaction,
+  ...WithNullableFields<DbBlock>,
+  ...UserAnnotation,
+  ...,
+}>>
+): Array<TransactionExportRow> {
+  const result = [];
+  const amountPerUnit = new BigNumber(10).pow(getJormungandrCurrencyMeta().decimalPlaces);
+  for (const tx of transactions) {
+    if (tx.block != null) {
+      result.push({
+        date: tx.block.BlockTime,
+        type: tx.type === transactionTypes.INCOME ? 'in' : 'out',
+        amount: formatBigNumberToFloatString(
+          tx.amount.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.abs().dividedBy(amountPerUnit)
+            || new BigNumber(0)
+        ),
+        fee: formatBigNumberToFloatString(
+          tx.fee.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.abs().dividedBy(amountPerUnit)
+            || new BigNumber(0)
+        ),
+      });
+    }
+  }
+  return result;
 }

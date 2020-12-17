@@ -455,8 +455,8 @@ export default class ErgoApi {
 
     const tokensForOutputs = await buildTokenMap({
       publicDeriver: request.publicDeriver,
-      utxoOutputs: filteredUtxos.map(
-        utxo => utxo.output.UtxoTransactionOutput.UtxoTransactionOutputId
+      tokenListIds: filteredUtxos.map(
+        utxo => utxo.output.UtxoTransactionOutput.TokenListId
       ),
     });
     const tokenMap = new Map<
@@ -468,15 +468,12 @@ export default class ErgoApi {
       }>
     >();
     for (const output of tokensForOutputs) {
-      const { UtxoTransactionOutputId } = output.TokenList;
-      if (UtxoTransactionOutputId != null) {
-        const list = tokenMap.get(UtxoTransactionOutputId) ?? [];
-        list.push({
-          amount: Number.parseInt(output.TokenList.Amount, 10),
-          tokenId: output.Token.Identifier,
-        });
-        tokenMap.set(UtxoTransactionOutputId, list);
-      }
+      const list = tokenMap.get(output.TokenList.ListId) ?? [];
+      list.push({
+        amount: Number.parseInt(output.TokenList.Amount, 10),
+        tokenId: output.Token.Identifier,
+      });
+      tokenMap.set(output.TokenList.ListId, list);
     }
     const addressedUtxo = asAddressedUtxo(
       filteredUtxos,

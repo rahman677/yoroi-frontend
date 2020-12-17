@@ -10,7 +10,7 @@ import type {
   JormungandrBaseConfig,
   TokenInsert,
 } from '../primitives/tables';
-import { PRIMARY_ASSET_CONSTANT } from '../primitives/enums';
+import { PRIMARY_ASSET_CONSTANTS } from '../primitives/enums';
 import environment from '../../../../../../environment';
 import { decode, } from 'bs58';
 
@@ -208,54 +208,54 @@ export function getErgoBaseConfig(
 
 export const defaultAssets: Array<
   $Diff<TokenInsert, {| Digest: number |}>
->= Object.keys(networks)
+> = Object.keys(networks)
   .map(key => networks[key])
-  .map(network => {
+  .flatMap(network => {
     if (isJormungandr(network)) {
       // TODO: not sure how Jormungandr will end up being used.
-      return {
+      return [{
         NetworkId: network.NetworkId,
-        Identifier: PRIMARY_ASSET_CONSTANT,
+        Identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
         Metadata: {
           type: 'Cardano',
-          policyId: PRIMARY_ASSET_CONSTANT,
-          assetName: PRIMARY_ASSET_CONSTANT,
+          policyId: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+          assetName: PRIMARY_ASSET_CONSTANTS.Jormungandr,
           ticker: 'ADA',
           longName: null,
           numberOfDecimals: 6,
         }
-      };
+      }];
     }
     if (isCardanoHaskell(network)) {
-      return {
+      return [{
         NetworkId: network.NetworkId,
-        Identifier: PRIMARY_ASSET_CONSTANT,
+        Identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
         Metadata: {
           type: 'Cardano',
-          policyId: PRIMARY_ASSET_CONSTANT,
-          assetName: PRIMARY_ASSET_CONSTANT,
+          policyId: PRIMARY_ASSET_CONSTANTS.Cardano,
+          assetName: PRIMARY_ASSET_CONSTANTS.Cardano,
           ticker: network === networks.CardanoTestnet
             ? 'TADA'
             : 'ADA',
           longName: null,
           numberOfDecimals: 6,
         }
-      };
+      }];
     }
     if (isErgo(network)) {
-      return {
+      return [{
         NetworkId: network.NetworkId,
-        Identifier: PRIMARY_ASSET_CONSTANT,
+        Identifier: PRIMARY_ASSET_CONSTANTS.Ergo,
         Metadata: {
           type: 'Ergo',
           height: 0,
-          boxId: PRIMARY_ASSET_CONSTANT,
+          boxId: PRIMARY_ASSET_CONSTANTS.Ergo,
           ticker: 'ERG',
           longName: null,
           numberOfDecimals: '1000000000'.length - 1, // units per ERG
           description: null,
         }
-      };
+      }];
     }
     throw new Error(`Missing default asset for network type ${JSON.stringify(network)}`);
   });

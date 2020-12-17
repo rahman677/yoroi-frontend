@@ -188,7 +188,6 @@ export function getMangledFilter(
       const txIndex = utxo.output.Transaction.Ordinal;
       // only null for pending transactions, which shouldn't happen
       if (txIndex == null) throw new Error(`${nameof(getMangledFilter)} unexpected pending tx`);
-
       return filter({
         utxo_id: utxo.output.Transaction.Hash + txIndex,
         tx_hash: utxo.output.Transaction.Hash,

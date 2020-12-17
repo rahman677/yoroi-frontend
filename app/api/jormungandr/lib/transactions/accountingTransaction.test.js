@@ -14,6 +14,7 @@ import {
 } from './accountingTransactions';
 import { RustModule } from '../../../ada/lib/cardanoCrypto/rustLoader';
 import BigNumber from 'bignumber.js';
+import { PRIMARY_ASSET_CONSTANTS } from '../../../ada/lib/storage/database/primitives/enums';
 
 beforeAll(async () => {
   await RustModule.load();
@@ -46,11 +47,11 @@ describe('Create unsigned TX for account', () => {
       new BigNumber(5000000),
       linearFeeConfig,
     );
-    const inputSum = getTxInputTotal(unsignedTxResponse, false);
-    const outputSum = getTxOutputTotal(unsignedTxResponse, false);
-    expect(inputSum.toString()).toEqual('2155383');
-    expect(outputSum.toString()).toEqual('2000000');
-    expect(inputSum.minus(outputSum).toString()).toEqual('155383');
+    const inputSum = getTxInputTotal(unsignedTxResponse);
+    const outputSum = getTxOutputTotal(unsignedTxResponse);
+    expect(inputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('2155383');
+    expect(outputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('2000000');
+    expect(inputSum.joinSubtractCopy(outputSum).get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('155383');
 
     const fragment = signTransaction(
       unsignedTxResponse,

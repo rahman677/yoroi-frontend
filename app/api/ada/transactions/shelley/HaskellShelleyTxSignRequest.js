@@ -6,6 +6,10 @@ import type { BaseSignRequest } from '../types';
 import { RustModule } from '../../lib/cardanoCrypto/rustLoader';
 import { getAdaCurrencyMeta } from '../../currencyInfo';
 import { toHexOrBase58 } from '../../lib/storage/bridge/utils';
+import {
+  MultiToken,
+} from '../../../common/lib/MultiToken';
+import { PRIMARY_ASSET_CONSTANTS } from '../../lib/storage/database/primitives/enums';
 
 /**
  * We take a copy of these parameters instead of re-evaluating them from the network
@@ -61,40 +65,42 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
     return this.metadata;
   }
 
-  totalInput(shift: boolean): BigNumber {
-    const inputTotal = this.signRequest.unsignedTx.get_implicit_input().checked_add(
-      this.signRequest.unsignedTx.get_explicit_input()
-    );
+  totalInput(): MultiToken {
+    const values = new MultiToken([]);
 
-    const change = this.signRequest.changeAddr
-      .map(val => new BigNumber(val.value || new BigNumber(0)))
-      .reduce((sum, val) => sum.plus(val), new BigNumber(0));
-    const result = new BigNumber(inputTotal.to_str()).minus(change);
-    if (shift) {
-      return result.shiftedBy(-getAdaCurrencyMeta().decimalPlaces.toNumber());
-    }
-    return result;
+    values.add({
+      identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+      amount: new BigNumber(
+        this.signRequest.unsignedTx.get_implicit_input().checked_add(
+          this.signRequest.unsignedTx.get_explicit_input()
+        ).to_str()
+      )
+    });
+    this.signRequest.changeAddr.forEach(change => values.joinSubtractMutable(change.values));
+
+    return values;
   }
 
-  totalOutput(shift: boolean): BigNumber {
-    const totalOutput = this.signRequest.unsignedTx.get_explicit_output();
+  totalOutput(): MultiToken {
+    const values = new MultiToken([]);
+    values.add({
+      identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+      amount: new BigNumber(this.signRequest.unsignedTx.get_explicit_output().to_str())
+    });
 
-    const result = new BigNumber(totalOutput.to_str());
-    if (shift) {
-      return result.shiftedBy(-getAdaCurrencyMeta().decimalPlaces.toNumber());
-    }
-    return result;
+    return values;
   }
 
-  fee(shift: boolean): BigNumber {
-    const fee = new BigNumber(
-      this.signRequest.unsignedTx.get_fee_if_set()?.to_str() || '0'
-    ).plus(this.signRequest.unsignedTx.get_deposit().to_str());
+  fee(): MultiToken {
+    const values = new MultiToken([]);
+    values.add({
+      identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+      amount: new BigNumber(
+        this.signRequest.unsignedTx.get_fee_if_set()?.to_str() || '0'
+      ).plus(this.signRequest.unsignedTx.get_deposit().to_str())
+    });
 
-    if (shift) {
-      return fee.shiftedBy(-getAdaCurrencyMeta().decimalPlaces.toNumber());
-    }
-    return fee;
+    return values;
   }
 
   withdrawals(shift: boolean): Array<{|

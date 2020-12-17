@@ -16,6 +16,8 @@ import type {
   JormungandrTransactionInsert,
   NetworkRow,
   DbBlock,
+  TokenRow,
+  TokenListInsert,
 } from '../../../../ada/lib/storage/database/primitives/tables';
 import {
   TransactionType,
@@ -32,11 +34,14 @@ import {
   GetTransaction,
   GetTxAndBlock,
   GetKeyDerivation,
+  GetToken,
+  AssociateToken,
 } from '../../../../ada/lib/storage/database/primitives/api/read';
 import {
   ModifyAddress,
   ModifyTransaction,
   FreeBlocks,
+  ModifyToken,
 } from '../../../../ada/lib/storage/database/primitives/api/write';
 import type { AddCertificateRequest } from '../../../../ada/lib/storage/database/primitives/api/write';
 import { ModifyJormungandrTx } from  '../../../../ada/lib/storage/database/transactionModels/multipart/api/write';
@@ -48,6 +53,7 @@ import {
   GetUtxoTxOutputsWithTx,
   GetUtxoInputs,
   AssociateTxWithUtxoIOs,
+  createTokenListIdGenFunction,
 } from '../../../../ada/lib/storage/database/transactionModels/utxo/api/read';
 import {
   AssociateTxWithAccountingIOs,
@@ -74,6 +80,7 @@ import {
   TxStatusCodes,
   CoreAddressTypes,
   CertificateRelation,
+  PRIMARY_ASSET_CONSTANTS,
 } from '../../../../ada/lib/storage/database/primitives/enums';
 import {
   asScanAddresses, asHasLevels, asGetAllUtxos, asGetAllAccounting,
@@ -126,7 +133,7 @@ import type {
 import { addressToKind } from '../../../../ada/lib/storage/bridge/utils';
 import { getFromUserPerspective, } from '../../../../ada/transactions/utils';
 import type { AddressDiscriminationType, } from '@emurgo/js-chain-libs/js_chain_libs';
-import { getJormungandrBaseConfig, } from '../../../../ada/lib/storage/database/prepackaged/networks';
+import { getJormungandrBaseConfig, defaultAssets, } from '../../../../ada/lib/storage/database/prepackaged/networks';
 
 async function rawGetAllTxIds(
   db: lf$Database,
@@ -248,7 +255,10 @@ export async function rawGetTransactions(
   }
   const txsWithIOs = await deps.JormungandrAssociateTxWithIOs.getIOsForTx(
     db, dbTx,
-    { txs: txs.map(txWithBlock => txWithBlock.Transaction) }
+    {
+      txs: txs.map(txWithBlock => txWithBlock.Transaction),
+      networkId: request.publicDeriver.getParent().getNetworkInfo().NetworkId,
+    }
   );
 
   // we need to build a lookup map of AddressId => Hash
@@ -279,6 +289,7 @@ export async function rawGetTransactions(
     ...tx,
     block: blockMap.get(tx.transaction.TransactionId) || null,
     ...getFromUserPerspective({
+      tokens: tx.tokens,
       utxoInputs: tx.utxoInputs,
       utxoOutputs: tx.utxoOutputs,
       accountingInputs: tx.accountingInputs,
@@ -455,7 +466,10 @@ export async function rawGetForeignAddresses(
 
   const txsWithIOs = await deps.JormungandrAssociateTxWithIOs.getIOsForTx(
     db, dbTx,
-    { txs: fullTxs }
+    {
+      txs: fullTxs,
+      networkId: request.publicDeriver.getParent().getNetworkInfo().NetworkId,
+    }
   );
 
   const allAddressIds = txsWithIOs.flatMap(txWithIO => [
@@ -666,6 +680,9 @@ export async function updateTransactions(
       AssociateTxWithAccountingIOs,
       AssociateTxWithUtxoIOs,
       GetKeyDerivation,
+      ModifyToken,
+      GetToken,
+      AssociateToken,
     });
     const updateTables = Object
       .keys(updateDepTables)
@@ -870,6 +887,7 @@ async function rollback(
       allTxIds: txIds,
       isUnspent: true,
       TransactionSeed,
+      networkId: request.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }
   );
 
@@ -937,6 +955,9 @@ async function rawUpdateTransactions(
     AssociateTxWithAccountingIOs: Class<AssociateTxWithAccountingIOs>,
     AssociateTxWithUtxoIOs: Class<AssociateTxWithUtxoIOs>,
     GetKeyDerivation: Class<GetKeyDerivation>,
+    ModifyToken: Class<ModifyToken>,
+    GetToken: Class<GetToken>,
+    AssociateToken: Class<AssociateToken>,
   |},
   publicDeriver: IPublicDeriver<>,
   lastSyncInfo: $ReadOnly<LastSyncInfoRow>,
@@ -1063,6 +1084,9 @@ async function rawUpdateTransactions(
         GetUtxoInputs: deps.GetUtxoInputs,
         ModifyTransaction: deps.ModifyTransaction,
         ModifyJormungandrTx: deps.ModifyJormungandrTx,
+        ModifyToken: deps.ModifyToken,
+        GetToken: deps.GetToken,
+        AssociateToken: deps.AssociateToken,
       },
       {
         network: publicDeriver.getParent().getNetworkInfo(),
@@ -1116,6 +1140,9 @@ export async function updateTransactionBatch(
     GetUtxoInputs: Class<GetUtxoInputs>,
     ModifyTransaction: Class<ModifyTransaction>,
     ModifyJormungandrTx: Class<ModifyJormungandrTx>,
+    ModifyToken: Class<ModifyToken>,
+    GetToken: Class<GetToken>,
+    AssociateToken: Class<AssociateToken>,
   |},
   request: {|
     network: $ReadOnly<NetworkRow>,
@@ -1141,7 +1168,10 @@ export async function updateTransactionBatch(
     const txs: Array<$ReadOnly<TransactionRow>> = Array.from(matchByDigest.values());
     const txsWithIOs = await deps.JormungandrAssociateTxWithIOs.getIOsForTx(
       db, dbTx,
-      { txs }
+      {
+        txs,
+        networkId: request.network.NetworkId,
+      }
     );
     for (const tx of txsWithIOs) {
       matchesInDb.set(tx.transaction.Hash, tx);
@@ -1206,7 +1236,23 @@ export async function updateTransactionBatch(
     }
   }
 
-  // 2) Add new transactions
+  // 2) Add any new assets & lookup known ones
+  const assetLookup = await genJormungandrAssetMap(
+    db, dbTx,
+    {
+      ModifyToken: deps.ModifyToken,
+      GetToken: deps.GetToken,
+    },
+    unseenNewTxs,
+    // request.getAssetInfo,
+    request.network,
+  );
+
+  // 3) Add new transactions
+  const genNextTokenListId = await createTokenListIdGenFunction(
+    db, dbTx,
+    { AssociateToken: deps.AssociateToken }
+  );
   const newTxsForDb = await networkTxToDbTx(
     db,
     dbTx,
@@ -1217,6 +1263,8 @@ export async function updateTransactionBatch(
     request.toAbsoluteSlotNumber,
     TransactionSeed,
     BlockSeed,
+    assetLookup,
+    genNextTokenListId,
   );
   const newsTxsIdSet = new Set();
   for (const newTx of newTxsForDb) {
@@ -1236,11 +1284,12 @@ export async function updateTransactionBatch(
         utxoOutputs: result.utxoOutputs,
         accountingInputs: result.accountingInputs,
         accountingOutputs: result.accountingOutputs,
+        tokens: result.tokens,
       });
     }
   }
 
-  // 3) Update UTXO set
+  // 4) Update UTXO set
 
   const newTxIds = txsAddedToBlock.map(tx =>  tx.transaction.TransactionId);
   await markAllInputs(
@@ -1258,10 +1307,11 @@ export async function updateTransactionBatch(
       ],
       isUnspent: false,
       TransactionSeed,
+      networkId: request.network.NetworkId,
     }
   );
 
-  // 4) Mark any pending tx that is not found by remote as failed
+  // 5) Mark any pending tx that is not found by remote as failed
 
   const pendingTxs = await deps.GetTransaction.withStatus(
     db, dbTx,
@@ -1295,6 +1345,150 @@ export async function updateTransactionBatch(
   return txsAddedToBlock;
 }
 
+
+async function genJormungandrAssetMap(
+  db: lf$Database,
+  dbTx: lf$Transaction,
+  deps: {|
+    ModifyToken: Class<ModifyToken>,
+    GetToken: Class<GetToken>,
+  |},
+  newTxs: Array<RemoteTransaction>,
+  // getAssetInfo: AssetInfoFunc,
+  network: $ReadOnly<NetworkRow>,
+): Promise<Map<string, $ReadOnly<TokenRow>>> {
+
+  const primaryAssetConstants = defaultAssets.filter(asset => asset.NetworkId === network.NetworkId)
+  const tokenIds = Array.from(new Set(newTxs.flatMap(_tx => [
+    ...primaryAssetConstants.map(asset => asset.Identifier)
+  ])));
+
+  const existingDbRows = await deps.GetToken.fromIdentifier(
+    db, dbTx,
+    tokenIds
+  );
+
+  const result = new Map<string, $ReadOnly<TokenRow>>();
+  existingDbRows.forEach(row => result.set(row.Identifier, row));
+
+  return result;
+}
+
+function genJormungandrIOGen(
+  networkTx: RemoteTransaction,
+  getIdOrThrow: string => number,
+  network: $ReadOnly<NetworkRow>,
+  getAssetInfoOrThrow: string => $ReadOnly<TokenRow>,
+  genNextTokenListId: void => number,
+): (number => {|
+  utxoInputs: Array<UtxoTransactionInputInsert>,
+  utxoOutputs: Array<UtxoTransactionOutputInsert>,
+  accountingInputs: Array<AccountingTransactionInputInsert>,
+  accountingOutputs: Array<AccountingTransactionOutputInsert>,
+  tokenList: Array<{|
+    TokenList: TokenListInsert,
+    identifier: string,
+  |}>,
+|}) {
+  return (txRowId) => {
+    const utxoInputs = [];
+    const utxoOutputs = [];
+    const accountingInputs = [];
+    const accountingOutputs = [];
+    const tokenList = [];
+    for (let i = 0; i < networkTx.inputs.length; i++) {
+      const input = networkTx.inputs[i];
+
+      const listId = genNextTokenListId();
+      tokenList.push({
+        TokenList: {
+          Amount: input.amount,
+          ListId: listId,
+          TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Jormungandr).TokenId,
+        },
+        identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+      });
+      if (input.type === InputTypes.utxo || input.type === InputTypes.legacyUtxo) {
+        utxoInputs.push({
+          TransactionId: txRowId,
+          AddressId: getIdOrThrow(input.address),
+          ParentTxHash: input.txHash,
+          IndexInParentTx: input.index,
+          IndexInOwnTx: i,
+          TokenListId: listId,
+        });
+      } else if (input.type === InputTypes.account) {
+        accountingInputs.push({
+          TransactionId: txRowId,
+          AddressId: getIdOrThrow(input.address),
+          SpendingCounter: input.spendingCounter,
+          IndexInOwnTx: i,
+          TokenListId: listId,
+        });
+      } else {
+        throw new Error(`${nameof(networkTxToDbTx)} Unhandled input type`);
+      }
+    }
+    for (let i = 0; i < networkTx.outputs.length; i++) {
+      const output = networkTx.outputs[i];
+      const outputType = addressToKind(output.address, 'bytes', network);
+
+      const listId = genNextTokenListId();
+      tokenList.push({
+        TokenList: {
+          Amount: output.amount,
+          ListId: listId,
+          TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Jormungandr).TokenId,
+        },
+        identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+      });
+      // consider a group address as a UTXO output
+      // since the payment (UTXO) key is the one that signs
+      if (
+        outputType === CoreAddressTypes.CARDANO_LEGACY ||
+        outputType === CoreAddressTypes.JORMUNGANDR_SINGLE ||
+        outputType === CoreAddressTypes.JORMUNGANDR_GROUP
+      ) {
+        utxoOutputs.push({
+          TransactionId: txRowId,
+          AddressId: getIdOrThrow(output.address),
+          OutputIndex: i,
+          TokenListId: listId,
+          /**
+            * we assume unspent for now but it will be updated after if necessary
+            * Note: if this output doesn't belong to you, it will be true forever
+            * This is slightly misleading, but using null would require null-checks everywhere
+            */
+          IsUnspent: true,
+          ErgoBoxId: null,
+          ErgoCreationHeight: null,
+          ErgoTree: null,
+        });
+      } else if (
+        outputType === CoreAddressTypes.JORMUNGANDR_ACCOUNT
+      ) {
+        accountingOutputs.push({
+          TransactionId: txRowId,
+          AddressId: getIdOrThrow(output.address),
+          OutputIndex: i,
+          TokenListId: listId,
+        });
+      } else {
+        // TODO: handle multisig
+        throw new Error(`${nameof(networkTxToDbTx)} Unhandled output type`);
+      }
+    }
+
+    return {
+      utxoInputs,
+      utxoOutputs,
+      accountingInputs,
+      accountingOutputs,
+      tokenList,
+    };
+  };
+}
+
 async function networkTxToDbTx(
   db: lf$Database,
   dbTx: lf$Transaction,
@@ -1305,16 +1499,13 @@ async function networkTxToDbTx(
   toAbsoluteSlotNumber: ToAbsoluteSlotNumberFunc,
   TransactionSeed: number,
   BlockSeed: number,
+  assetLookup: Map<string, $ReadOnly<TokenRow>>,
+  genNextTokenListId: void => number,
 ): Promise<Array<{|
   block: null | BlockInsert,
   transaction: (blockId: null | number) => TransactionInsert,
   certificates: $ReadOnlyArray<number => (void | AddCertificateRequest)>,
-  ioGen: number => {|
-    utxoInputs: Array<UtxoTransactionInputInsert>,
-    utxoOutputs: Array<UtxoTransactionOutputInsert>,
-    accountingInputs: Array<AccountingTransactionInputInsert>,
-    accountingOutputs: Array<AccountingTransactionOutputInsert>,
-  |},
+  ioGen: ReturnType<typeof genJormungandrIOGen>,
 |}>> {
   const allAddresses = Array.from(new Set(
     newTxs.flatMap(tx => [
@@ -1337,6 +1528,14 @@ async function networkTxToDbTx(
     const id = idMapping.get(hash);
     if (id === undefined) {
       throw new Error(`${nameof(networkTxToDbTx)} should never happen id === undefined`);
+    }
+    return id;
+  };
+  const getAssetInfoOrThrow = (hash: string): $ReadOnly<TokenRow> => {
+    // recall: we already added all needed tokens to the DB before we get here
+    const id = assetLookup.get(hash);
+    if (id === undefined) {
+      throw new Error(`${nameof(networkTxToDbTx)} should never happen -- asset missing`);
     }
     return id;
   };
@@ -1372,81 +1571,13 @@ async function networkTxToDbTx(
       block,
       transaction,
       certificates,
-      ioGen: (txRowId) => {
-        const utxoInputs = [];
-        const utxoOutputs = [];
-        const accountingInputs = [];
-        const accountingOutputs = [];
-        for (let i = 0; i < networkTx.inputs.length; i++) {
-          const input = networkTx.inputs[i];
-          if (input.type === InputTypes.utxo || input.type === InputTypes.legacyUtxo) {
-            utxoInputs.push({
-              TransactionId: txRowId,
-              AddressId: getIdOrThrow(input.address),
-              ParentTxHash: input.txHash,
-              IndexInParentTx: input.index,
-              IndexInOwnTx: i,
-              Amount: input.amount,
-            });
-          } else if (input.type === InputTypes.account) {
-            accountingInputs.push({
-              TransactionId: txRowId,
-              AddressId: getIdOrThrow(input.address),
-              SpendingCounter: input.spendingCounter,
-              IndexInOwnTx: i,
-              Amount: input.amount,
-            });
-          } else {
-            throw new Error(`${nameof(networkTxToDbTx)} Unhandled input type`);
-          }
-        }
-        for (let i = 0; i < networkTx.outputs.length; i++) {
-          const output = networkTx.outputs[i];
-          const outputType = addressToKind(output.address, 'bytes', network);
-          // consider a group address as a UTXO output
-          // since the payment (UTXO) key is the one that signs
-          if (
-            outputType === CoreAddressTypes.CARDANO_LEGACY ||
-            outputType === CoreAddressTypes.JORMUNGANDR_SINGLE ||
-            outputType === CoreAddressTypes.JORMUNGANDR_GROUP
-          ) {
-            utxoOutputs.push({
-              TransactionId: txRowId,
-              AddressId: getIdOrThrow(output.address),
-              OutputIndex: i,
-              Amount: output.amount,
-              /**
-               * we assume unspent for now but it will be updated after if necessary
-               * Note: if this output doesn't belong to you, it will be true forever
-               * This is slightly misleading, but using null would require null-checks everywhere
-               */
-              IsUnspent: true,
-              ErgoBoxId: null,
-              ErgoCreationHeight: null,
-              ErgoTree: null,
-            });
-          } else if (
-            outputType === CoreAddressTypes.JORMUNGANDR_ACCOUNT
-          ) {
-            accountingOutputs.push({
-              TransactionId: txRowId,
-              AddressId: getIdOrThrow(output.address),
-              OutputIndex: i,
-              Amount: output.amount,
-            });
-          } else {
-            // TODO: handle multisig
-            throw new Error(`${nameof(networkTxToDbTx)} Unhandled output type`);
-          }
-        }
-
-        return {
-          utxoInputs,
-          utxoOutputs,
-          accountingInputs,
-          accountingOutputs,
-        };
-      },
+      ioGen: genJormungandrIOGen(
+        networkTx,
+        getIdOrThrow,
+        network,
+        getAssetInfoOrThrow,
+        genNextTokenListId
+      ),
     });
   }
 
@@ -1466,6 +1597,7 @@ async function markAllInputs(
     allTxIds: Array<number>,
     isUnspent: boolean,
     TransactionSeed: number,
+    networkId: number,
     ...
   },
 ): Promise<void> {
@@ -1499,6 +1631,7 @@ async function markAllInputs(
         txId: parentTx.TransactionId,
         outputIndex: input.IndexInParentTx,
         isUnspent: request.isUnspent,
+        networkId: request.networkId,
       }
     );
   }

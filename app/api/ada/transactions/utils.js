@@ -17,6 +17,7 @@ import type {
 import type {
   DbTransaction,
   DbBlock,
+  DbTokenInfo
 } from '../lib/storage/database/primitives/tables';
 import type {
   AccountingTransactionInputRow,
@@ -35,15 +36,22 @@ import {
 } from '../lib/storage/database/walletTypes/bip44/api/utils';
 import { getAdaCurrencyMeta } from '../currencyInfo';
 import { formatBigNumberToFloatString } from '../../../utils/formatters';
+import {
+  MultiToken,
+} from '../../common/lib/MultiToken';
+import {
+  PRIMARY_ASSET_CONSTANTS,
+} from '../lib/storage/database/primitives/enums';
 
 export function getFromUserPerspective(data: {|
   utxoInputs: $ReadOnlyArray<$ReadOnly<UtxoTransactionInputRow>>,
   utxoOutputs: $ReadOnlyArray<$ReadOnly<UtxoTransactionOutputRow>>,
   accountingInputs?: $ReadOnlyArray<$ReadOnly<AccountingTransactionInputRow>>,
   accountingOutputs?: $ReadOnlyArray<$ReadOnly<AccountingTransactionOutputRow>>,
-  ownImplicitInput?: BigNumber,
-  ownImplicitOutput?: BigNumber,
+  ownImplicitInput?: MultiToken,
+  ownImplicitOutput?: MultiToken,
   allOwnedAddressIds: Set<number>,
+  ...DbTokenInfo,
 |}): UserAnnotation {
   const unifiedInputs = [
     ...data.utxoInputs,
@@ -61,10 +69,12 @@ export function getFromUserPerspective(data: {|
     data.allOwnedAddressIds.has(output.AddressId)
   ));
 
-  const totalIn = sumInputsOutputs(unifiedInputs);
-  const totalOut = sumInputsOutputs(unifiedOutputs);
-  const ownIn = sumInputsOutputs(ownInputs).plus(data.ownImplicitInput ?? 0);
-  const ownOut = sumInputsOutputs(ownOutputs).plus(data.ownImplicitOutput ?? 0);
+  const totalIn = sumInputsOutputs(unifiedInputs, data.tokens);
+  const totalOut = sumInputsOutputs(unifiedOutputs, data.tokens);
+  const ownIn = sumInputsOutputs(ownInputs, data.tokens)
+    .joinAddCopy(data.ownImplicitInput ?? new MultiToken([]));
+  const ownOut = sumInputsOutputs(ownOutputs, data.tokens)
+    .joinAddCopy(data.ownImplicitOutput ?? new MultiToken([]));
 
   const hasOnlyOwnInputs = ownInputs.length === unifiedInputs.length;
   const hasOnlyOwnOutputs = ownOutputs.length === unifiedOutputs.length;
@@ -73,13 +83,13 @@ export function getFromUserPerspective(data: {|
   const isMultiParty =
     ownInputs.length > 0 && ownInputs.length !== unifiedInputs.length;
 
-  const brutto = ownOut.minus(ownIn);
-  const totalFee = totalOut.minus(totalIn); // should be negative
+  const brutto = ownOut.joinSubtractCopy(ownIn);
+  const totalFee = totalOut.joinSubtractCopy(totalIn); // should be negative
 
   if (isIntraWallet) {
     return {
       type: transactionTypes.SELF,
-      amount: new BigNumber(0),
+      amount: new MultiToken([]),
       fee: totalFee,
     };
   }
@@ -88,13 +98,13 @@ export function getFromUserPerspective(data: {|
       type: transactionTypes.MULTI,
       amount: brutto,
       // note: fees not accurate but no logical way of finding which UTXO paid the fees
-      fee: new BigNumber(0),
+      fee: new MultiToken([]),
     };
   }
   if (hasOnlyOwnInputs) {
     return {
       type: transactionTypes.EXPEND,
-      amount: brutto.minus(totalFee),
+      amount: brutto.joinSubtractCopy(totalFee),
       fee: totalFee,
     };
   }
@@ -102,7 +112,7 @@ export function getFromUserPerspective(data: {|
   return {
     type: transactionTypes.INCOME,
     amount: brutto,
-    fee: new BigNumber(0),
+    fee: new MultiToken([]),
   };
 }
 
@@ -115,14 +125,20 @@ export function convertAdaTransactionsToExportRows(
 }>>
 ): Array<TransactionExportRow> {
   const result = [];
-  const lovelacesPerAda = new BigNumber(10).pow(getAdaCurrencyMeta().decimalPlaces);
+  const amountPerUnit = new BigNumber(10).pow(getAdaCurrencyMeta().decimalPlaces);
   for (const tx of transactions) {
     if (tx.block != null) {
       result.push({
         date: tx.block.BlockTime,
         type: tx.type === transactionTypes.INCOME ? 'in' : 'out',
-        amount: formatBigNumberToFloatString(tx.amount.abs().dividedBy(lovelacesPerAda)),
-        fee: formatBigNumberToFloatString(tx.fee.abs().dividedBy(lovelacesPerAda)),
+        amount: formatBigNumberToFloatString(
+          tx.amount.get(PRIMARY_ASSET_CONSTANTS.Cardano)?.abs().dividedBy(amountPerUnit)
+            || new BigNumber(0)
+        ),
+        fee: formatBigNumberToFloatString(
+          tx.fee.get(PRIMARY_ASSET_CONSTANTS.Cardano)?.abs().dividedBy(amountPerUnit)
+            || new BigNumber(0)
+        ),
       });
     }
   }
@@ -133,14 +149,23 @@ export function sumInputsOutputs(
   ios: $ReadOnlyArray<$ReadOnly<
     UtxoTransactionInputRow | UtxoTransactionOutputRow |
     AccountingTransactionInputRow | AccountingTransactionOutputRow
-  >>
-): BigNumber {
-  const amounts = ios.map(utxo => new BigNumber(utxo.Amount));
-  const total = amounts.reduce(
-    (acc, amount) => acc.plus(amount),
-    new BigNumber(0)
-  );
-  return total;
+  >>,
+  tokens: $PropertyType<DbTokenInfo, 'tokens'>,
+): MultiToken {
+  const usedTokens = ios
+    .reduce(
+      (acc, next) => {
+        const entry = tokens.find(token => token.TokenList.ListId === next.TokenListId);
+        if (entry == null) return acc;
+        acc.push(entry);
+        return acc;
+      },
+      []
+    );
+  return new MultiToken(usedTokens.map(token => ({
+    identifier: token.Token.Identifier,
+    amount: new BigNumber(token.TokenList.Amount)
+  })));
 }
 
 export type UtxoLookupMap = { [string]: { [number]: RemoteUnspentOutput, ... }, ... };

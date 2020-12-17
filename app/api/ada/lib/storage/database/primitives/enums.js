@@ -2,9 +2,13 @@
 
 /**
  * we use an empty string to represent the ID of the primary currency for a chain
- * as this is easier than use null (which requires null checks everywhere
+ * Since using null may not work if a given blockchain has multiple primary currencies
  */
-export const PRIMARY_ASSET_CONSTANT = '';
+export const PRIMARY_ASSET_CONSTANTS = {
+  Cardano: '',
+  Ergo: '',
+  Jormungandr: ''
+};
 
 export const CoreAddressTypes = Object.freeze({
   CARDANO_LEGACY: 0,
