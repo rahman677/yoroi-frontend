@@ -299,7 +299,6 @@ async function syncingSimpleTransaction(): Promise<void> {
           },
           UtxoTransactionOutput: {
             AddressId: 5,
-            Amount: '2100000',
             IsUnspent: true,
             OutputIndex: 0,
             TransactionId: 1,
@@ -307,19 +306,43 @@ async function syncingSimpleTransaction(): Promise<void> {
             ErgoBoxId: '66a35e15ae1a83fa188674a2bd53137b07e119a0eaaf40b890b2081c2864f12a',
             ErgoCreationHeight: 1,
             ErgoTree: '0008cd030a34bb300eff7a7cc7fc2aba459142b5815883840fb8955db162b3f8f9b0ab72',
-          }
+            TokenListId: 1,
+          },
+          tokens: [{
+            Token: {
+              Digest: 6.262633522161549e-167,
+              Identifier: '',
+              Metadata: {
+                longName: null,
+                numberOfDecimals: 9,
+                ticker: 'ERG',
+                type: 'Ergo',
+                boxId: '',
+                description: null,
+                height: 0,
+              },
+              NetworkId: 200,
+              TokenId: 3,
+            },
+            TokenList: {
+              Amount: '2100000',
+              ListId: 1,
+              TokenId: 3,
+              TokenListItemId: 2,
+            },
+          }]
         }
       }]);
     }
 
     {
       const response = await basePubDeriver.getUtxoBalance();
-      expect(response).toEqual(new BigNumber('2100000'));
+      expect(response.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2100000'));
     }
 
     {
       const response = await basePubDeriver.getUtxoBalance();
-      expect(response).toEqual(new BigNumber('2100000'));
+      expect(response.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2100000'));
     }
 
     {
@@ -393,7 +416,6 @@ async function syncingSimpleTransaction(): Promise<void> {
           },
           UtxoTransactionOutput: {
             AddressId: 1,
-            Amount: '1100000',
             IsUnspent: true,
             OutputIndex: 0,
             TransactionId: 2,
@@ -401,7 +423,31 @@ async function syncingSimpleTransaction(): Promise<void> {
             ErgoBoxId: '18335e15ae1a83fa188674a2bd53137839e119a0eaaf40b890b2081c2864f12a',
             ErgoCreationHeight: 1,
             ErgoTree: '0008cd024b414d2f9a78fa4df3052a6a6777e84c06a6bcbc37bd5f5bc895d406f30a6ad8',
-          }
+            TokenListId: 4,
+          },
+          tokens: [{
+            Token: {
+              Digest: 6.262633522161549e-167,
+              Identifier: '',
+              Metadata: {
+                longName: null,
+                numberOfDecimals: 9,
+                ticker: 'ERG',
+                type: 'Ergo',
+                boxId: '',
+                description: null,
+                height: 0,
+              },
+              NetworkId: 200,
+              TokenId: 3,
+            },
+            TokenList: {
+              Amount: '1100000',
+              ListId: 4,
+              TokenId: 3,
+              TokenListItemId: 5,
+            },
+          }]
         }
       },
       {
@@ -429,7 +475,6 @@ async function syncingSimpleTransaction(): Promise<void> {
           },
           UtxoTransactionOutput: {
             AddressId: 20,
-            Amount: '900000',
             IsUnspent: true,
             OutputIndex: 1,
             TransactionId: 2,
@@ -437,7 +482,31 @@ async function syncingSimpleTransaction(): Promise<void> {
             ErgoBoxId: 'ff735e15ae1a83fa188674a21749137839e119a0eaaf40b890b2081c2864f12a',
             ErgoCreationHeight: 1,
             ErgoTree: '0008cd03468b1754b0f74d15440e78e8f6939a674e324f4617af443719b038c4229eca43',
-          }
+            TokenListId: 5,
+          },
+          tokens: [{
+            Token: {
+              Digest: 6.262633522161549e-167,
+              Identifier: '',
+              Metadata: {
+                longName: null,
+                numberOfDecimals: 9,
+                ticker: 'ERG',
+                type: 'Ergo',
+                boxId: '',
+                description: null,
+                height: 0,
+              },
+              NetworkId: 200,
+              TokenId: 3,
+            },
+            TokenList: {
+              Amount: '900000',
+              ListId: 5,
+              TokenId: 3,
+              TokenListItemId: 6,
+            },
+          }]
         },
       }
       ]);
@@ -445,12 +514,12 @@ async function syncingSimpleTransaction(): Promise<void> {
 
     {
       const response = await basePubDeriver.getUtxoBalance();
-      expect(response).toEqual(new BigNumber('2000000'));
+      expect(response.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2000000'));
     }
 
     {
       const response = await basePubDeriver.getUtxoBalance();
-      expect(response).toEqual(new BigNumber('2000000'));
+      expect(response.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2000000'));
     }
 
     {
@@ -477,7 +546,9 @@ async function syncingSimpleTransaction(): Promise<void> {
     'AccountingTransactionInput',
     'UtxoTransactionOutput',
     'LastSyncInfo',
-    'Block'
+    'Block',
+    'Token',
+    'TokenList',
   ];
   const dump = (await db.export()).tables;
   filterDbSnapshot(dump, keysForTest);
