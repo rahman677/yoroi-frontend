@@ -281,10 +281,7 @@ export interface IHasUtxoChains {
 }
 
 export type IGetUtxoBalanceRequest = void;
-export type IGetUtxoBalanceResponse = Array<{|
-  Token: $ReadOnly<TokenRow>,
-  amount: BigNumber,
-|}>;
+export type IGetUtxoBalanceResponse = MultiToken;
 export type IGetUtxoBalanceFunc = (
   body: IGetUtxoBalanceRequest
 ) => Promise<IGetUtxoBalanceResponse>;

@@ -119,8 +119,8 @@ export default class UpgradeTxDialogContainer extends Component<Props> {
     }
 
     return {
-      recoveredBalance: tentativeTx.totalOutput(true).plus(tentativeTx.fee(true)),
-      fee: tentativeTx.fee(true),
+      recoveredBalance: tentativeTx.totalOutput().joinAddCopy(tentativeTx.fee()),
+      fee: tentativeTx.fee(),
       senders: tentativeTx
         .uniqueSenderAddresses(),
       receivers: tentativeTx
@@ -183,6 +183,7 @@ export default class UpgradeTxDialogContainer extends Component<Props> {
           .get(network.NetworkId) ?? (() => { throw new Error('No explorer for wallet network'); })()
         }
         transferTx={transferTx}
+        networkId={selected.getParent().getNetworkInfo().NetworkId}
         onSubmit={{
           trigger: async () => await this.submit({
             network,

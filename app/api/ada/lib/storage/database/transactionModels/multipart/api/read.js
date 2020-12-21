@@ -97,6 +97,8 @@ export class JormungandrAssociateTxWithIOs {
       networkId: number,
     |},
   ): Promise<Array<JormungandrTxIO>> {
+    if (request.txs.length === 0) return [];
+
     const { depTables } = JormungandrAssociateTxWithIOs;
     const accounting = await depTables.AssociateTxWithAccountingIOs.getIOsForTx(
       db, tx, { txs: request.txs }

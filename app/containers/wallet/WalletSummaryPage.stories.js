@@ -59,6 +59,10 @@ import {
   BYRON_INTERNAL,
 } from '../../stores/stateless/addressStores';
 import type { IAddressTypeStore, IAddressTypeUiSubset } from '../../stores/stateless/addressStores';
+import { defaultAssets } from '../../api/ada/lib/storage/database/prepackaged/networks';
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
 
 export default {
   title: `${__filename.split('.')[0]}`,
@@ -104,6 +108,9 @@ export const Loading = (): Node => {
     return wallet;
   };
   const wallet = genWallet();
+  const primaryAssetConstant = defaultAssets.filter(
+    asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+  )[0];
   const lookup = walletLookup([wallet]);
   return wrapWallet(
     mockWalletProps({
@@ -167,9 +174,18 @@ export const Loading = (): Node => {
               Height: 0,
             },
             unconfirmedAmount: {
-              total: new BigNumber(0),
-              incoming: new BigNumber(0),
-              outgoing: new BigNumber(0),
+              total: new MultiToken([{
+                identifier: primaryAssetConstant.Identifier,
+                amount: new BigNumber(0)
+              }]),
+              incoming: new MultiToken([{
+                identifier: primaryAssetConstant.Identifier,
+                amount: new BigNumber(0)
+              }]),
+              outgoing: new MultiToken([{
+                identifier: primaryAssetConstant.Identifier,
+                amount: new BigNumber(0)
+              }]),
               incomingInSelectedCurrency: new BigNumber(0),
               outgoingInSelectedCurrency: new BigNumber(0),
             },
@@ -285,6 +301,7 @@ const genPropsForTransactions: {|
         Price: 5,
         Time: timestamp,
       }),
+      request.wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     ),
     isExporting: request.txExport != null ? request.txExport.isExporting : false,
     exportError: request.txExport?.exportError,
@@ -326,6 +343,10 @@ export const Transaction = (): Node => {
   };
   const wallet = genWallet();
   const lookup = walletLookup([wallet]);
+
+  const primaryAssetConstant = defaultAssets.filter(
+    asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+  )[0];
 
   const state = select(
     'txStatus',
@@ -374,22 +395,37 @@ export const Transaction = (): Node => {
       transactionTypes,
       transactionTypes.EXPEND
     ),
-    amount: new BigNumber(1000),
-    fee: new BigNumber(5),
+    amount: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(1000)
+    }]),
+    fee: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(5)
+    }]),
     date: new Date(0),
     addresses: {
       from: [{
         address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
-        value: new BigNumber(1010),
+        value: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: new BigNumber(1010)
+        }]),
       }],
       to: [
         {
           address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
-          value: new BigNumber(5),
+          value: new MultiToken([{
+            identifier: primaryAssetConstant.Identifier,
+            amount: new BigNumber(5)
+          }]),
         },
         {
           address: 'DdzFFzCqrhseVmPAqenKdENxL5Fp7DW82CF6wk8SnWoCiUDFfVfqD6cHFCFgv1ySmFhpPod3hYqzuRFs48BbT6QR9rk9bYMdgodBXFny',
-          value: new BigNumber(1000),
+          value: new MultiToken([{
+            identifier: primaryAssetConstant.Identifier,
+            amount: new BigNumber(1000)
+          }]),
         },
       ],
     },
@@ -457,6 +493,10 @@ export const TransactionWithMemo = (): Node => {
   const wallet = genWallet();
   const lookup = walletLookup([wallet]);
 
+  const primaryAssetConstant = defaultAssets.filter(
+    asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+  )[0];
+
   const walletTransaction = new CardanoByronTransaction({
     txid: '915f2e6865fb31cc93410efb6c0e580ca74862374b3da461e20135c01f312e7c',
     block: {
@@ -472,17 +512,29 @@ export const TransactionWithMemo = (): Node => {
       transactionTypes,
       transactionTypes.EXPEND
     ),
-    amount: new BigNumber(1000),
-    fee: new BigNumber(5),
+    amount: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(1000)
+    }]),
+    fee: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(6)
+    }]),
     date: new Date(0),
     addresses: {
       from: [{
         address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
-        value: new BigNumber(1005),
+        value: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: new BigNumber(1005)
+        }]),
       }],
       to: [{
         address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
-        value: new BigNumber(1000),
+        value: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: new BigNumber(1000)
+        }])
       }],
     },
     state: TxStatusCodes.IN_BLOCK,
@@ -536,6 +588,10 @@ export const MemoDialog = (): Node => {
   const wallet = genWallet();
   const lookup = walletLookup([wallet]);
 
+  const primaryAssetConstant = defaultAssets.filter(
+    asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+  )[0];
+
   const walletTransaction = new CardanoByronTransaction({
     txid: '915f2e6865fb31cc93410efb6c0e580ca74862374b3da461e20135c01f312e7c',
     block: {
@@ -551,17 +607,29 @@ export const MemoDialog = (): Node => {
       transactionTypes,
       transactionTypes.EXPEND
     ),
-    amount: new BigNumber(1000),
-    fee: new BigNumber(5),
+    amount: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(1000)
+    }]),
+    fee: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(5)
+    }]),
     date: new Date(0),
     addresses: {
       from: [{
         address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
-        value: new BigNumber(1005),
+        value: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: new BigNumber(1005)
+        }]),
       }],
       to: [{
         address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
-        value: new BigNumber(1000),
+        value: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: new BigNumber(1000)
+        }]),
       }],
     },
     state: TxStatusCodes.IN_BLOCK,
@@ -664,6 +732,10 @@ export const ManyTransactions = (): Node => {
   const wallet = genWallet();
   const lookup = walletLookup([wallet]);
 
+  const primaryAssetConstant = defaultAssets.filter(
+    asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+  )[0];
+
   const transactions = [];
   for (let i = INITIAL_SEARCH_LIMIT; i >= 0; i--) {
     transactions.push(new CardanoByronTransaction({
@@ -677,18 +749,30 @@ export const ManyTransactions = (): Node => {
         BlockTime: new Date(Math.floor(i / 2) * (24 * 60 * 60 * 1000)),
       },
       type: transactionTypes.EXPEND,
-      amount: new BigNumber(1000),
-      fee: new BigNumber(5),
+      amount: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(1000)
+    }]),
+    fee: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(5)
+    }]),
       // make groups of 2 transactions each
       date: new Date(Math.floor(i / 2) * (24 * 60 * 60 * 1000)),
       addresses: {
         from: [{
           address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
-          value: new BigNumber(1005),
+          value: new MultiToken([{
+            identifier: primaryAssetConstant.Identifier,
+            amount: new BigNumber(1005)
+          }]),
         }],
         to: [{
           address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
-          value: new BigNumber(1000),
+          value: new MultiToken([{
+            identifier: primaryAssetConstant.Identifier,
+            amount: new BigNumber(1000)
+          }])
         }],
       },
       state: TxStatusCodes.IN_BLOCK,
@@ -731,6 +815,10 @@ export const TxHistoryExport = (): Node => {
   const wallet = genWallet();
   const lookup = walletLookup([wallet]);
 
+  const primaryAssetConstant = defaultAssets.filter(
+    asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+  )[0];
+
   const transactions = [new CardanoByronTransaction({
     txid: '915f2e6865fb31cc93410efb6c0e580ca74862374b3da461e20135c01f312e7c',
     block: {
@@ -742,17 +830,29 @@ export const TxHistoryExport = (): Node => {
       BlockTime: new Date(0),
     },
     type: transactionTypes.EXPEND,
-    amount: new BigNumber(1000),
-    fee: new BigNumber(5),
+    amount: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(1000)
+    }]),
+    fee: new MultiToken([{
+      identifier: primaryAssetConstant.Identifier,
+      amount: new BigNumber(6)
+    }]),
     date: new Date(0),
     addresses: {
       from: [{
         address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
-        value: new BigNumber(1005),
+        value: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: new BigNumber(1005)
+        }]),
       }],
       to: [{
         address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
-        value: new BigNumber(1000),
+        value: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: new BigNumber(1000)
+        }])
       }],
     },
     state: TxStatusCodes.IN_BLOCK,

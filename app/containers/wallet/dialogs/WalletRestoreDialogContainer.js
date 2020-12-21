@@ -241,6 +241,7 @@ export default class WalletRestoreDialogContainer extends Component<Props> {
             apiMeta.meta.decimalPlaces.toNumber()
           )}
           transferTx={yoroiTransfer.transferTx}
+          networkId={this.getSelectedNetwork().NetworkId}
           selectedExplorer={this.generated.stores.explorers.selectedExplorer
             .get(this.getSelectedNetwork().NetworkId) ?? (() => { throw new Error('No explorer for wallet network'); })()
           }

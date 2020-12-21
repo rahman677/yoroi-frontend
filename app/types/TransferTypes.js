@@ -33,10 +33,10 @@ export type TransferTx = {|
   +encodedTx?: Uint8Array,
   +withdrawals?: Array<{|
     +address: string,
-    +amount: BigNumber,
+    +amount: MultiToken,
   |}>,
   deregistrations?: Array<{|
     +rewardAddress: string,
-    +refund: BigNumber,
+    +refund: MultiToken,
   |}>,
 |}

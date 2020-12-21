@@ -19,6 +19,9 @@ import { SelectedExplorer } from '../../domain/SelectedExplorer';
 import { truncateAddress } from '../../utils/formatters';
 import type { TransferTx } from '../../types/TransferTypes';
 import { genAddressLookup } from '../../stores/stateless/addressStores';
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
 
 const messages = defineMessages({
   addressFromLabel: {
@@ -65,6 +68,7 @@ type Props = {|
   +addressToDisplayString: string => string,
   +addressLookup: ReturnType<typeof genAddressLookup>,
   +header?: Node,
+  +networkId: number,
 |};
 
 /** Show user what the transfer would do to get final confirmation */
@@ -188,8 +192,8 @@ export default class TransferSummaryPage extends Component<Props> {
                 {intl.formatMessage(messages.unregisterExplanation, {
                   ticker: this.props.ticker,
                   refundAmount: deregistrations.reduce(
-                    (sum, curr) => (curr.refund == null ? sum : sum.plus(curr.refund)),
-                    new BigNumber(0)
+                    (sum, curr) => (curr.refund == null ? sum : sum.joinAddCopy(curr.refund)),
+                    new MultiToken([])
                   ).toString()
                 })}
               </div>
@@ -268,25 +272,33 @@ export default class TransferSummaryPage extends Component<Props> {
     );
   }
 
-  getTotalBalance: void => BigNumber = () => {
-    const baseTotal = this.props.transferTx.recoveredBalance.minus(this.props.transferTx.fee);
+  getTotalBalance: void => MultiToken = () => {
+    const baseTotal = this.props.transferTx.recoveredBalance.joinSubtractCopy(
+      this.props.transferTx.fee
+    );
     if (this.props.transferTx.deregistrations == null) {
       return baseTotal;
     }
     const refundSum = this.props.transferTx.deregistrations.reduce(
-      (sum, curr) => (curr.refund == null ? sum : sum.plus(curr.refund)),
-      new BigNumber(0)
+      (sum, curr) => (curr.refund == null ? sum : sum.joinAddCopy(curr.refund)),
+      new MultiToken([])
     );
-    return baseTotal.plus(refundSum);
+    return baseTotal.joinAddCopy(refundSum);
   }
 
   render(): Node {
     const { intl } = this.context;
     const { transferTx, isSubmitting, error, unitOfAccountSetting, coinPrice, } = this.props;
 
-    const recoveredBalance = this.props.formattedWalletAmount(transferTx.recoveredBalance);
-    const transactionFee = this.props.formattedWalletAmount(transferTx.fee);
-    const finalBalance = this.props.formattedWalletAmount(this.getTotalBalance());
+    const recoveredBalance = this.props.formattedWalletAmount(
+      transferTx.recoveredBalance.getDefault(this.props.networkId)
+    );
+    const transactionFee = this.props.formattedWalletAmount(
+      transferTx.fee.getDefault(this.props.networkId)
+    );
+    const finalBalance = this.props.formattedWalletAmount(
+      this.getTotalBalance().getDefault(this.props.networkId)
+    );
 
     return this.wrapInDialog(
       <div className={styles.body}>
@@ -303,7 +315,10 @@ export default class TransferSummaryPage extends Component<Props> {
               <>
                 <div className={styles.amount}>
                   {coinPrice != null
-                    ? calculateAndFormatValue(transferTx.recoveredBalance, coinPrice)
+                    ? calculateAndFormatValue(
+                      transferTx.recoveredBalance.getDefault(this.props.networkId),
+                      coinPrice
+                    )
                     : '-'
                   }
                   <span className={styles.currencySymbol}>&nbsp;
@@ -333,7 +348,10 @@ export default class TransferSummaryPage extends Component<Props> {
               <>
                 <div className={styles.fees}>
                   {'+' + (coinPrice != null
-                    ? calculateAndFormatValue(transferTx.fee, coinPrice)
+                    ? calculateAndFormatValue(
+                      transferTx.fee.getDefault(this.props.networkId),
+                      coinPrice
+                    )
                     : '-'
                   )}
                   <span className={styles.currencySymbol}>&nbsp;
@@ -365,7 +383,9 @@ export default class TransferSummaryPage extends Component<Props> {
               <div className={styles.totalAmount}>
                 {coinPrice != null
                   ? calculateAndFormatValue(
-                    transferTx.recoveredBalance.minus(transferTx.fee),
+                    transferTx.recoveredBalance
+                      .joinSubtractCopy(transferTx.fee)
+                      .getDefault(this.props.networkId),
                     coinPrice
                   )
                   : '-'

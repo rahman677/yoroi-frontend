@@ -33,6 +33,9 @@ import {
 import type {
   Address, Addressing
 } from '../../api/ada/lib/storage/models/PublicDeriver/interfaces';
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
 
 export default class AdaYoroiTransferStore extends Store {
 
@@ -177,10 +180,10 @@ export default class AdaYoroiTransferStore extends Store {
     // TODO: this isn't actually used anywhere. Should probably remove it
     return {
       encodedTx: Uint8Array.from([]),
-      fee: unsignedTx.fee(true),
+      fee: unsignedTx.fee(),
       id: unsignedTx.txId(),
       receivers: unsignedTx.receivers(true),
-      recoveredBalance: new BigNumber(0),
+      recoveredBalance: new MultiToken([]),
       senders: unsignedTx
         .uniqueSenderAddresses(),
     };

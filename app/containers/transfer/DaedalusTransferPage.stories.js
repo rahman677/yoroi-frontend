@@ -35,6 +35,10 @@ import {
 import AdaApi from '../../api/ada/index';
 import type { IAddressTypeStore, IAddressTypeUiSubset } from '../../stores/stateless/addressStores';
 import { allAddressSubgroups } from '../../stores/stateless/addressStores';
+import { defaultAssets, } from '../../api/ada/lib/storage/database/prepackaged/networks';
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
 
 export default {
   title: `${__filename.split('.')[0]}`,
@@ -244,6 +248,11 @@ export const GeneratingTx = (): Node => {
 export const ReadyToTransfer = (): Node => {
   const wallet = genShelleyCip1852DummyWithCache();
   const lookup = walletLookup([wallet]);
+
+  const primaryAssetConstant = defaultAssets.filter(
+    asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+  )[0];
+
   return (() => {
     const baseProps = genBaseProps({
       wallet: wallet.publicDeriver,
@@ -251,8 +260,14 @@ export const ReadyToTransfer = (): Node => {
         status: TransferStatus.READY_TO_TRANSFER,
         error: undefined,
         transferTx: {
-          recoveredBalance: new BigNumber(1),
-          fee: new BigNumber(0.1),
+          recoveredBalance: new MultiToken([{
+            identifier: primaryAssetConstant.Identifier,
+            amount: new BigNumber(1),
+          }]),
+          fee: new MultiToken([{
+            identifier: primaryAssetConstant.Identifier,
+            amount: new BigNumber(0.1),
+          }]),
           id: 'b65ae37bcc560e323ea8922de6573004299b6646e69ab9fac305f62f0c94c3ab',
           encodedTx: new Uint8Array([]),
           senders: ['DdzFFzCqrhsmcx7z25PRkdbeUNqNNW4brhznpVxbm1EknAahjaCFEjYXg9KJRqkixjgGyz8D9GSX3CFDRoNrZyfJsi61N2FxCnq9yWBy'],

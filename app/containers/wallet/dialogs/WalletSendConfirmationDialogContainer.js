@@ -56,8 +56,8 @@ export default class WalletSendConfirmationDialogContainer extends Component<Pro
     const { sendMoney } = actions.wallets;
     const { sendMoneyRequest } = stores.wallets;
 
-    const totalInput = signRequest.totalInput(true);
-    const fee = signRequest.fee(true);
+    const totalInput = signRequest.totalInput();
+    const fee = signRequest.fee();
     const receivers = signRequest.receivers(false);
     return (
       <WalletSendConfirmationDialog
@@ -67,10 +67,16 @@ export default class WalletSendConfirmationDialogContainer extends Component<Pro
             publicDeriver.getParent().getNetworkInfo().NetworkId
           ) ?? (() => { throw new Error('No explorer for wallet network'); })()
         }
-        amount={totalInput.minus(fee)}
+        amount={totalInput.joinSubtractCopy(fee).getDefault(
+          publicDeriver.getParent().getNetworkInfo().NetworkId
+        )}
         receivers={receivers}
-        totalAmount={totalInput}
-        transactionFee={fee}
+        totalAmount={totalInput.getDefault(
+          publicDeriver.getParent().getNetworkInfo().NetworkId
+        )}
+        transactionFee={fee.getDefault(
+          publicDeriver.getParent().getNetworkInfo().NetworkId
+        )}
         amountToNaturalUnits={amount => formattedAmountToNaturalUnits(
           amount,
           apiMeta.decimalPlaces.toNumber()

@@ -3,6 +3,9 @@
 import {
   BigNumber
 } from 'bignumber.js';
+import {
+  defaultAssets,
+} from '../../ada/lib/storage/database/prepackaged/networks';
 
 export type TokenEntry = {|
   /**
@@ -60,5 +63,49 @@ export class MultiToken {
   joinSubtractCopy: MultiToken => MultiToken = (target) => {
     const copy = new MultiToken(this.values);
     return copy.joinSubtractMutable(target);
+  }
+
+  absCopy: void => MultiToken = () => {
+    return new MultiToken(
+      this.values.map(token => ({ ...token, amount: token.amount.absoluteValue() }))
+    );
+  }
+
+  negatedCopy: void => MultiToken = () => {
+    return new MultiToken(
+      this.values.map(token => ({ ...token, amount: token.amount.negated() }))
+    );
+  }
+
+  /// TODO: this assumes there is only one primary, which isn't always the case
+  getDefault: number => BigNumber = (networkId) => {
+    const token = defaultAssets.find(asset => asset.NetworkId === networkId);
+    if (token == null) return new BigNumber(0);
+    const primary = this.values.find(value => value.identifier === token.Identifier);
+    if (primary == null) return new BigNumber(0);
+    return primary.amount;
+  }
+
+  asMap: void => Map<string, BigNumber> = () => {
+    return new Map(this.values.map(value => [value.identifier, value.amount]));
+  }
+
+  isEqualTo: MultiToken => boolean = (tokens) => {
+    const remainingTokens = this.asMap();
+
+    // remove tokens that match <identifier, amount> one at a time
+    // if by the end there are no tokens left, it means we had a perfect match
+    for (const token of tokens.values) {
+      const value = remainingTokens.get(token.identifier);
+      if (value == null) return false;
+      if (!value.isEqualTo(token.amount)) return false;
+      remainingTokens.delete(token.identifier);
+    }
+    if (remainingTokens.size > 0) return false;
+    return true;
+  }
+
+  isEmpty: void => boolean = () => {
+    return this.values.filter(token => token.amount.gt(0)).length === 0;
   }
 }

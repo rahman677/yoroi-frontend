@@ -1,6 +1,5 @@
 // @flow
 import React, { Component } from 'react';
-import BigNumber from 'bignumber.js';
 import type { Node } from 'react';
 import { observer } from 'mobx-react';
 import { computed, } from 'mobx';
@@ -13,6 +12,9 @@ import { HaskellShelleyTxSignRequest } from '../../api/ada/transactions/shelley/
 import globalMessages from '../../i18n/global-messages';
 import { intlShape, } from 'react-intl';
 import type { $npm$ReactIntl$IntlFormat } from 'react-intl';
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
 
 export type GeneratedData = typeof WithdrawalTxDialogContainer.prototype.generated;
 
@@ -48,15 +50,15 @@ export default class WithdrawalTxDialogContainer extends Component<Props> {
             throw new Error(`${nameof(WithdrawalTxDialogContainer)} incorrect tx type`);
           }
 
-          const deregistrations = tentativeTx.keyDeregistrations(true);
-          const withdrawals = tentativeTx.withdrawals(true);
+          const deregistrations = tentativeTx.keyDeregistrations();
+          const withdrawals = tentativeTx.withdrawals();
 
           return {
             recoveredBalance: withdrawals.reduce(
-              (sum, curr) => sum.plus(curr.amount),
-              new BigNumber(0)
+              (sum, curr) => sum.joinAddCopy(curr.amount),
+              new MultiToken([])
             ),
-            fee: tentativeTx.fee(true),
+            fee: tentativeTx.fee(),
             senders: tentativeTx
               .uniqueSenderAddresses(),
             receivers: tentativeTx

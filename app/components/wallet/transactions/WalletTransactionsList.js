@@ -55,6 +55,7 @@ type Props = {|
   +notification: ?Notification,
   +decimalPlaces: number, // TODO: this should be tied to individual values, not the currency itself
   +addressToDisplayString: string => string,
+  +networkId: number,
 |};
 
 @observer
@@ -198,6 +199,7 @@ export default class WalletTransactionsList extends Component<Props> {
                   onCopyAddressTooltip={onCopyAddressTooltip}
                   decimalPlaces={this.props.decimalPlaces}
                   addressToDisplayString={this.props.addressToDisplayString}
+                  networkId={this.props.networkId}
                 />
               ))}
             </div>

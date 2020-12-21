@@ -28,7 +28,6 @@ import { ConceptualWallet } from './ConceptualWallet/index';
 import type { IHasLevels } from './ConceptualWallet/interfaces';
 import type {
   CanonicalAddressRow,
-  TokenRow,
 } from '../database/primitives/tables';
 import type {
   CoreAddressT
@@ -226,10 +225,7 @@ export async function rawGetAddressesForDisplay(
     .map(addr => {
       return {
         address: addr.Hash,
-        values: new MultiToken(balanceForAddresses[addr.AddressId].map(value => ({
-          identifier: value.Token.Identifier,
-          amount: value.amount
-        }))),
+        values: balanceForAddresses[addr.AddressId],
         addressing: family.addressing,
         isUsed: utxosForAddresses.has(addr.AddressId),
         type: request.type,
@@ -397,21 +393,17 @@ export function getUtxoBalanceForAddresses(
 export function getBalanceForUtxos(
   utxos: $ReadOnlyArray<$ReadOnly<UtxoTxOutput>>,
 ): IGetUtxoBalanceResponse {
-  const amountMap = new Map<number, {|
-    Token: $ReadOnly<TokenRow>,
-    amount: BigNumber,
-  |}>();
+  const tokens = new MultiToken([]);
+
   for (const utxo of utxos) {
     for (const token of utxo.tokens) {
-      const entry = amountMap.get(token.Token.TokenId) ?? {
-        Token: token.Token,
-        amount: new BigNumber(0)
-      };
-      entry.amount = entry.amount.plus(token.TokenList.Amount);
-      amountMap.set(token.Token.TokenId, entry);
+      tokens.add({
+        identifier: token.Token.Identifier,
+        amount: new BigNumber(token.TokenList.Amount),
+      });
     }
   }
-  return Array.from(amountMap.values());
+  return tokens;
 }
 
 export async function updateCutoffFromInsert(

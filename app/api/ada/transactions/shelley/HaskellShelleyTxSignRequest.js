@@ -103,9 +103,9 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
     return values;
   }
 
-  withdrawals(shift: boolean): Array<{|
+  withdrawals(): Array<{|
     +address: string,
-    +amount: BigNumber,
+    +amount: MultiToken,
   |}> {
     const withdrawals = this.signRequest.unsignedTx.build().withdrawals();
     if (withdrawals == null) return [];
@@ -117,9 +117,10 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
       const withdrawalAmount = withdrawals.get(rewardAddress)?.to_str();
       if (withdrawalAmount == null) continue;
 
-      const amount = shift
-        ? new BigNumber(withdrawalAmount).shiftedBy(-getAdaCurrencyMeta().decimalPlaces.toNumber())
-        : new BigNumber(withdrawalAmount);
+      const amount = new MultiToken([{
+        identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+        amount: new BigNumber(withdrawalAmount)
+      }]);
       result.push({
         address: Buffer.from(rewardAddress.to_address().to_bytes()).toString('hex'),
         amount,
@@ -128,9 +129,9 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
     return result;
   }
 
-  keyDeregistrations(shift: boolean): Array<{|
+  keyDeregistrations(): Array<{|
     +rewardAddress: string,
-    +refund: BigNumber,
+    +refund: MultiToken,
   |}> {
     const certs = this.signRequest.unsignedTx.build().certs();
     if (certs == null) return [];
@@ -147,10 +148,10 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
       result.push({
         rewardAddress: Buffer.from(address.to_address().to_bytes()).toString('hex'),
         // recall: for now you get the full deposit back. May change in the future
-        refund: shift
-          ? this.networkSettingSnapshot.KeyDeposit
-            .shiftedBy(-getAdaCurrencyMeta().decimalPlaces.toNumber())
-          : this.networkSettingSnapshot.KeyDeposit,
+        refund: new MultiToken([{
+          identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+          amount: this.networkSettingSnapshot.KeyDeposit,
+        }]),
       });
     }
     return result;

@@ -1393,7 +1393,7 @@ async function genErgoAssetMap(
 ): Promise<Map<string, $ReadOnly<TokenRow>>> {
 
   const primaryAssetConstants = defaultAssets.filter(asset => asset.NetworkId === network.NetworkId)
-  const tokenIds = Array.from(new Set(newTxs.flatMap(tx => [
+  const tokenIdentifiers = Array.from(new Set(newTxs.flatMap(tx => [
     ...tx.inputs
       .flatMap(input => input.assets)
       .map(asset => asset.tokenId),
@@ -1404,17 +1404,17 @@ async function genErgoAssetMap(
     ...primaryAssetConstants.map(asset => asset.Identifier)
   ])));
 
-  const existingDbRows = await deps.GetToken.fromIdentifier(
+  const existingDbRows = (await deps.GetToken.fromIdentifier(
     db, dbTx,
-    tokenIds
-  );
+    tokenIdentifiers
+  )).filter(row => row.NetworkId === network.NetworkId);
 
   const existingTokens = new Set<string>(
     existingDbRows.map(row => row.Identifier)
   );
   const tokenInfo = await getAssetInfo({
     network,
-    assetIds: tokenIds.filter(token => !existingTokens.has(token))
+    assetIds: tokenIdentifiers.filter(tokenIdentifier => !existingTokens.has(tokenIdentifier))
   });
 
   const databaseInsert = Object.keys(tokenInfo).map(tokenId => ({

@@ -131,6 +131,7 @@ export default class WalletSummaryPage extends Component<InjectedOrGenerated<Gen
             lastSyncBlock={lastSyncInfo.Height}
             memoMap={this.generated.stores.memos.txMemoMap.get(walletId) || new Map()}
             priceMap={this.generated.stores.coinPriceStore.priceMap}
+            networkId={publicDeriver.getParent().getNetworkInfo().NetworkId}
             selectedExplorer={
               this.generated.stores.explorers.selectedExplorer.get(
                 publicDeriver.getParent().getNetworkInfo().NetworkId
@@ -236,6 +237,7 @@ export default class WalletSummaryPage extends Component<InjectedOrGenerated<Gen
         </NotificationMessage>
 
         <WalletSummary
+          networkId={publicDeriver.getParent().getNetworkInfo().NetworkId}
           numberOfTransactions={totalAvailable}
           pendingAmount={unconfirmedAmount}
           shouldHideBalance={profile.shouldHideBalance}

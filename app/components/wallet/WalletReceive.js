@@ -77,6 +77,7 @@ type Props = {|
     +decimalPlaces: number,
   |},
   +addressBook: boolean,
+  +networkId: number,
 |};
 
 @observer
@@ -116,10 +117,10 @@ export default class WalletReceive extends Component<Props> {
     const header = (<h2>{intl.formatMessage(messages.outputAmountUTXO)}</h2>);
     const body = address => (
       <div>
-        {address.value != null
+        {address.values != null
           ? (
             <div className={styles.walletAmount}>
-              {this.getAmount(address.value.div(
+              {this.getAmount(address.values.getDefault(this.props.networkId).div(
                 new BigNumber(10).pow(this.props.meta.decimalPlaces)
               ))}
               {' '}

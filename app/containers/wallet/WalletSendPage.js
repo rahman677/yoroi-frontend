@@ -1,7 +1,6 @@
 // @flow
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
-import BigNumber from 'bignumber.js';
 import { action, computed, observable, runInAction } from 'mobx';
 import type { Node } from 'react';
 import { defineMessages, intlShape } from 'react-intl';
@@ -32,6 +31,9 @@ import { ApiOptions, getApiForNetwork, getApiMeta } from '../../api/common/utils
 import { validateAmount } from '../../utils/validations';
 import { formattedWalletAmount } from '../../utils/formatters';
 import { addressToDisplayString } from '../../api/ada/lib/storage/bridge/utils';
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
 
 // Hardware Wallet Confirmation
 import HWSendConfirmationDialog from '../../components/wallet/send/HWSendConfirmationDialog';
@@ -137,7 +139,9 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
             this.context.intl,
           )}
           onSubmit={onSubmit}
-          totalInput={transactionBuilderStore.totalInput}
+          totalInput={transactionBuilderStore.totalInput?.getDefault(
+            publicDeriver.getParent().getNetworkInfo().NetworkId
+          )}
           hasAnyPending={hasAnyPending}
           classicTheme={profile.isClassicTheme}
           updateReceiver={(addr: void | string) => txBuilderActions.updateReceiver.trigger(addr)}
@@ -145,7 +149,9 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
           updateMemo={(content: void | string) => txBuilderActions.updateMemo.trigger(content)}
           shouldSendAll={transactionBuilderStore.shouldSendAll}
           toggleSendAll={txBuilderActions.toggleSendAll.trigger}
-          fee={transactionBuilderStore.fee}
+          fee={transactionBuilderStore.fee?.getDefault(
+            publicDeriver.getParent().getNetworkInfo().NetworkId
+          )}
           isCalculatingFee={transactionBuilderStore.createUnsignedTx.isExecuting}
           reset={txBuilderActions.reset.trigger}
           error={transactionBuilderStore.createUnsignedTx.error}
@@ -235,8 +241,8 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
     }
     const signRequest = transactionBuilderStore.tentativeTx;
 
-    const totalInput = signRequest.totalInput(true);
-    const fee = signRequest.fee(true);
+    const totalInput = signRequest.totalInput();
+    const fee = signRequest.fee();
     const receivers = signRequest.receivers(false);
 
     const coinPrice: ?number = this.generated.stores.profile.unitOfAccount.enabled
@@ -266,10 +272,16 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
         <HWSendConfirmationDialog
           staleTx={transactionBuilderStore.txMismatch}
           selectedExplorer={selectedExplorerForNetwork}
-          amount={totalInput.minus(fee)}
+          amount={totalInput.joinSubtractCopy(fee).getDefault(
+            conceptualWallet.getNetworkInfo().NetworkId
+          )}
           receivers={receivers}
-          totalAmount={totalInput}
-          transactionFee={fee}
+          totalAmount={totalInput.getDefault(
+            conceptualWallet.getNetworkInfo().NetworkId
+          )}
+          transactionFee={fee.getDefault(
+            conceptualWallet.getNetworkInfo().NetworkId
+          )}
           ticker={apiMeta.primaryTicker}
           messages={messagesLedger}
           isSubmitting={ledgerSendStore.isActionProcessing}
@@ -298,10 +310,16 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
         <HWSendConfirmationDialog
           staleTx={transactionBuilderStore.txMismatch}
           selectedExplorer={selectedExplorerForNetwork}
-          amount={totalInput.minus(fee)}
+          amount={totalInput.joinSubtractCopy(fee).getDefault(
+            conceptualWallet.getNetworkInfo().NetworkId
+          )}
           receivers={receivers}
-          totalAmount={totalInput}
-          transactionFee={fee}
+          totalAmount={totalInput.getDefault(
+            conceptualWallet.getNetworkInfo().NetworkId
+          )}
+          transactionFee={fee.getDefault(
+            conceptualWallet.getNetworkInfo().NetworkId
+          )}
           ticker={apiMeta.primaryTicker}
           messages={messagesTrezor}
           isSubmitting={trezorSendStore.isActionProcessing}
@@ -451,10 +469,10 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
           error: ?LocalizableError,
           isExecuting: boolean
         |},
-        fee: ?BigNumber,
+        fee: ?MultiToken,
         shouldSendAll: boolean,
         tentativeTx: null | ISignRequest<any>,
-        totalInput: ?BigNumber,
+        totalInput: ?MultiToken,
         txMismatch: boolean
       |},
       substores: {|

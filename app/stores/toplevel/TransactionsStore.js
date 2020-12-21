@@ -39,7 +39,9 @@ import type { TransactionRowsToExportRequest } from '../../actions/common/transa
 import globalMessages from '../../i18n/global-messages';
 import * as timeUtils from '../../api/ada/lib/storage/bridge/timeUtils';
 import { getCardanoHaskellBaseConfig, isCardanoHaskell } from '../../api/ada/lib/storage/database/prepackaged/networks';
-
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
 
 export type TxRequests = {|
   publicDeriver: PublicDeriver<>,
@@ -101,9 +103,9 @@ export default class TransactionsStore extends Store {
   /** Calculate information about transactions that are still realistically reversible */
   @computed get unconfirmedAmount(): UnconfirmedAmount {
     const defaultUnconfirmedAmount = {
-      total: new BigNumber(0),
-      incoming: new BigNumber(0),
-      outgoing: new BigNumber(0),
+      total: new MultiToken([]),
+      incoming: new MultiToken([]),
+      outgoing: new MultiToken([]),
       incomingInSelectedCurrency: new BigNumber(0),
       outgoingInSelectedCurrency: new BigNumber(0),
     };
@@ -139,7 +141,8 @@ export default class TransactionsStore extends Store {
       result.transactions,
       txRequests.lastSyncInfo.Height,
       assuranceMode,
-      getUnitOfAccount
+      getUnitOfAccount,
+      publicDeriver.getParent().getNetworkInfo().NetworkId,
     );
   }
 

@@ -72,6 +72,10 @@ import {
 import { ComplexityLevels } from '../../../types/complexityLevelType';
 import DeregisterDialogContainer from '../../transfer/DeregisterDialogContainer';
 import WithdrawalTxDialogContainer from '../../transfer/WithdrawalTxDialogContainer';
+import { defaultAssets } from '../../../api/ada/lib/storage/database/prepackaged/networks';
+import {
+  MultiToken,
+} from '../../../api/common/lib/MultiToken';
 
 export default {
   title: `${__filename.split('.')[0]}`,
@@ -1359,39 +1363,56 @@ export const MangledDashboardWarning = (): Node => {
     canUnmangle: new BigNumber(1000000),
     cannotUnmangle: new BigNumber(1),
   };
+
+  const wallet = genBaseJormungandrWallet(
+    mangledValue === mangledCases.CanUnmangleSome || mangledValue === mangledCases.CanUnmangleAll
+      ? mangleValues.canUnmangle
+      : new BigNumber(0)
+  );
+
+  const primaryAssetConstant = defaultAssets.filter(
+    asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+  )[0];
   const addresses = (() => {
     if (mangledValue === mangledCases.CannotUnmangle) {
       return [{
         address: 'addr1sj045dheysyptfekdyqa508nuzdzmh82vkda9hcwqwysrja6d8d66f0cfsfk50hhuqjymr08drnm2kdf0r2337l6kl7mtm0z44vv4jexkqhz5w',
-        value: mangleValues.cannotUnmangle,
+        values: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: mangleValues.cannotUnmangle
+        }]),
         type: CoreAddressTypes.JORMUNGANDR_GROUP,
       }];
     }
     if (mangledValue === mangledCases.CanUnmangleSome) {
       return [{
         address: 'addr1sj045dheysyptfekdyqa508nuzdzmh82vkda9hcwqwysrja6d8d66f0cfsfk50hhuqjymr08drnm2kdf0r2337l6kl7mtm0z44vv4jexkqhz5w',
-        value: mangleValues.cannotUnmangle,
+        values: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: mangleValues.cannotUnmangle
+        }]),
         type: CoreAddressTypes.JORMUNGANDR_GROUP,
       }, {
         address: 'addr1sj045dheysyptfekdyqa508nuzdzmh82vkda9hcwqwysrja6d8d66f0cfsfk50hhuqjymr08drnm2kdf0r2337l6kl7mtm0z44vv4jexkqhz5w',
-        value: mangleValues.canUnmangle,
+        values: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: mangleValues.canUnmangle
+        }]),
         type: CoreAddressTypes.JORMUNGANDR_GROUP,
       }];
     }
     if (mangledValue === mangledCases.CanUnmangleAll) {
       return [{
         address: 'addr1sj045dheysyptfekdyqa508nuzdzmh82vkda9hcwqwysrja6d8d66f0cfsfk50hhuqjymr08drnm2kdf0r2337l6kl7mtm0z44vv4jexkqhz5w',
-        value: mangleValues.canUnmangle,
+        values: new MultiToken([{
+          identifier: primaryAssetConstant.Identifier,
+          amount: mangleValues.canUnmangle
+        }]),
         type: CoreAddressTypes.JORMUNGANDR_GROUP,
       }];
     }
     throw new Error(`Unhandled mangled case ${mangledValue}`);
   })();
-  const wallet = genBaseJormungandrWallet(
-    mangledValue === mangledCases.CanUnmangleSome || mangledValue === mangledCases.CanUnmangleAll
-      ? mangleValues.canUnmangle
-      : new BigNumber(0)
-  );
   const lookup = walletLookup([wallet]);
   return wrapWallet(
     mockWalletProps({

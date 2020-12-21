@@ -58,6 +58,10 @@ import {
   CoreAddressTypes,
 } from '../../api/ada/lib/storage/database/primitives/enums';
 import { ComplexityLevels } from '../../types/complexityLevelType';
+import { defaultAssets } from '../../api/ada/lib/storage/database/prepackaged/networks';
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
 
 export default {
   title: `${__filename.split('.')[0]}`,
@@ -68,7 +72,7 @@ export default {
 
 const unusedProps = (address, type) => ({
   address,
-  value: undefined,
+  values: undefined,
   addressing: {
     path: [2147483692, 2147485463, 2147483648, 13, 0, 0],
     startLevel: 0,
@@ -78,7 +82,7 @@ const unusedProps = (address, type) => ({
 });
 const noUtxoProps = (address, type) => ({
   address,
-  value: undefined,
+  values: undefined,
   addressing: {
     path: [],
     startLevel: 0,
@@ -86,9 +90,12 @@ const noUtxoProps = (address, type) => ({
   isUsed: true,
   type,
 });
-const withUtxo = (address, type) => ({
+const withUtxo = (address, type, networkId) => ({
   address,
-  value: new BigNumber(100),
+  values: new MultiToken([{
+    identifier: defaultAssets.filter(asset => asset.NetworkId === networkId)[0].Identifier,
+    amount: new BigNumber(100)
+  }]),
   addressing: {
     path: [],
     startLevel: 0,
@@ -124,7 +131,10 @@ const genBaseProps: {|
       if (subgroup == null) continue;
       for (const address of subgroup.all) {
         // for the purposes of testing, consider any > 0 as unmangle-able
-        if (address.value != null && address.value.gt(0)) {
+        if (
+          address.values != null &&
+          address.values.values.filter(value => value.amount.gt(0)).length > 0
+        ) {
           return true;
         }
       }
@@ -619,7 +629,11 @@ export const MangledTab = (): Node => {
       withUtxo('addr1qxacxugp8h6snaap4w9j430zpsgyve50ypmn8pz0cz9v484v4dlyj0kwfs0x4e38a7047lymzp37tx0y42glslcdtzhqamgwnn', CoreAddressTypes.CARDANO_BASE),
     ].map(addr => ({
       ...addr,
-      value: new BigNumber(getMangledValue()),
+      values: addr.values == null
+        ? undefined
+        : new MultiToken(
+          addr.values.values.map(value => ({ ...value, amount: getMangledValue() }))
+        ),
     })),
     wasExecuted: true,
   });
@@ -748,7 +762,11 @@ export const UnmangleDialogLoading = (): Node => {
       withUtxo('addr1qxacxugp8h6snaap4w9j430zpsgyve50ypmn8pz0cz9v484v4dlyj0kwfs0x4e38a7047lymzp37tx0y42glslcdtzhqamgwnn', CoreAddressTypes.CARDANO_BASE),
     ].map(addr => ({
       ...addr,
-      value: new BigNumber(1000000),
+      values: addr.values == null
+        ? undefined
+        : new MultiToken(
+          addr.values.values.map(value => ({ ...value, amount: new BigNumber(1000000) }))
+        ),
     })),
     wasExecuted: true,
   });
@@ -800,7 +818,11 @@ export const UnmangleDialogError = (): Node => {
       withUtxo('addr1qxacxugp8h6snaap4w9j430zpsgyve50ypmn8pz0cz9v484v4dlyj0kwfs0x4e38a7047lymzp37tx0y42glslcdtzhqamgwnn', CoreAddressTypes.CARDANO_BASE),
     ].map(addr => ({
       ...addr,
-      value: new BigNumber(1000000),
+      values: addr.values == null
+        ? undefined
+        : new MultiToken(
+          addr.values.values.map(value => ({ ...value, amount: new BigNumber(1000000) }))
+        ),
     })),
     wasExecuted: true,
   });
@@ -854,7 +876,11 @@ export const UnmangleDialogConfirm = (): Node => {
       withUtxo('addr1qxacxugp8h6snaap4w9j430zpsgyve50ypmn8pz0cz9v484v4dlyj0kwfs0x4e38a7047lymzp37tx0y42glslcdtzhqamgwnn', CoreAddressTypes.CARDANO_BASE),
     ].map(addr => ({
       ...addr,
-      value: new BigNumber(1000000),
+      values: addr.values == null
+        ? undefined
+        : new MultiToken(
+          addr.values.values.map(value => ({ ...value, amount: new BigNumber(1000000) }))
+        ),
     })),
     wasExecuted: true,
   });

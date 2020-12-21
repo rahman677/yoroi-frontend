@@ -27,6 +27,9 @@ import {
   groupAddrContainsAccountKey,
   unwrapStakingKey as JormungandrUnwrapStakingKey,
 } from '../../api/jormungandr/lib/storage/bridge/utils';
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
 
 export type MangledAmountsRequest = {|
   publicDeriver: PublicDeriver<>,
@@ -81,7 +84,11 @@ export async function getUnmangleAmounts(
       )) {
         continue;
       }
-      const value = new BigNumber(utxo.output.UtxoTransactionOutput.Amount);
+      const tokens = new MultiToken(utxo.output.tokens.map(token => ({
+        identifier: token.Token.Identifier,
+        amount: new BigNumber(token.TokenList.Amount),
+      })));
+      const value = tokens.getDefault(network.NetworkId);
       if (value.gt(config.LinearFee.coefficient)) {
         canUnmangle.push(value);
       } else {
@@ -134,13 +141,17 @@ export async function getUnmangleAmounts(
       // only null for pending transactions, which shouldn't happen
       if (txIndex == null) throw new Error(`${nameof(getUnmangleAmounts)} unexpected pending tx`);
 
-      const value = new BigNumber(utxo.output.UtxoTransactionOutput.Amount);
+      const tokens = new MultiToken(utxo.output.tokens.map(token => ({
+        identifier: token.Token.Identifier,
+        amount: new BigNumber(token.TokenList.Amount),
+      })));
+      const value = tokens.getDefault(network.NetworkId);
       if (filter({
         utxo_id: utxo.output.Transaction.Hash + txIndex,
         tx_hash: utxo.output.Transaction.Hash,
         tx_index: txIndex,
         receiver: utxo.address,
-        amount: utxo.output.UtxoTransactionOutput.Amount,
+        amount: value.toString(),
       })) {
         canUnmangle.push(value);
       } else {
@@ -188,12 +199,18 @@ export function getMangledFilter(
       const txIndex = utxo.output.Transaction.Ordinal;
       // only null for pending transactions, which shouldn't happen
       if (txIndex == null) throw new Error(`${nameof(getMangledFilter)} unexpected pending tx`);
+
+      const tokens = new MultiToken(utxo.output.tokens.map(token => ({
+        identifier: token.Token.Identifier,
+        amount: new BigNumber(token.TokenList.Amount),
+      })));
+      const value = tokens.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId);
       return filter({
         utxo_id: utxo.output.Transaction.Hash + txIndex,
         tx_hash: utxo.output.Transaction.Hash,
         tx_index: txIndex,
         receiver: utxo.address,
-        amount: utxo.output.UtxoTransactionOutput.Amount,
+        amount: value.toString(),
       });
     };
   }
@@ -209,8 +226,12 @@ export function getMangledFilter(
       if (!relevantAddresses.has(utxo.address)) {
         return false;
       }
-      const amount = new BigNumber(utxo.output.UtxoTransactionOutput.Amount);
-      return amount.gt(config.LinearFee.coefficient);
+      const tokens = new MultiToken(utxo.output.tokens.map(token => ({
+        identifier: token.Token.Identifier,
+        amount: new BigNumber(token.TokenList.Amount),
+      })));
+      const value = tokens.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId);
+      return value.gt(config.LinearFee.coefficient);
     };
   }
   throw new Error(`${nameof(getMangledFilter)} no unmangle support for network ${publicDeriver.getParent().getNetworkInfo().NetworkId}`);

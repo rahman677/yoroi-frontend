@@ -2,7 +2,6 @@
 
 import type { Node } from 'react';
 import React from 'react';
-import BigNumber from 'bignumber.js';
 
 import { boolean, select } from '@storybook/addon-knobs';
 import { action } from '@storybook/addon-actions';
@@ -271,7 +270,7 @@ export const RegularConfirmationDialog = (): Node => {
             error: getErrorValue(),
           },
           transactionBuilderStore: {
-            totalInput: new BigNumber(inputAmount),
+            totalInput: inputAmount,
             fee,
             shouldSendAll: false,
             tentativeTx,
@@ -323,7 +322,7 @@ export const LedgerConfirmationDialog = (): Node => {
             error: undefined,
           },
           transactionBuilderStore: {
-            totalInput: new BigNumber(inputAmount),
+            totalInput: inputAmount,
             fee,
             shouldSendAll: false,
             tentativeTx,
@@ -375,7 +374,7 @@ export const TrezorConfirmationDialog = (): Node => {
             error: undefined,
           },
           transactionBuilderStore: {
-            totalInput: new BigNumber(inputAmount),
+            totalInput: inputAmount,
             fee,
             shouldSendAll: false,
             tentativeTx,

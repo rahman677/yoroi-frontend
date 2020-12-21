@@ -217,6 +217,7 @@ export default class WalletReceivePage extends Component<Props> {
             filter: this.generated.stores.addresses.addressFilter,
           }}
           header={header}
+          networkId={publicDeriver.getParent().getNetworkInfo().NetworkId}
           selectedExplorer={selectedExplorerForNetwork}
           walletAddresses={applyAddressFilter({
             addressFilter: this.generated.stores.addresses.addressFilter,

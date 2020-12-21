@@ -1,6 +1,5 @@
 // @flow
 import React, { Component, } from 'react';
-import BigNumber from 'bignumber.js';
 import type { Node } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
@@ -14,6 +13,9 @@ import type { UnitOfAccountSettingType } from '../../../types/unitOfAccountType'
 import { formatValue } from '../../../utils/unit-of-account';
 import type { $npm$ReactIntl$IntlFormat } from 'react-intl';
 import { splitAmount } from '../../../utils/formatters';
+import {
+  MultiToken,
+} from '../../../api/common/lib/MultiToken';
 
 const messages = defineMessages({
   pendingOutgoingConfirmationLabel: {
@@ -57,6 +59,7 @@ type Props = {|
   +isLoadingTransactions: boolean,
   +openExportTxToFileDialog: void => void,
   +unitOfAccountSetting: UnitOfAccountSettingType,
+  +networkId: number,
 |};
 
 @observer
@@ -68,14 +71,15 @@ export default class WalletSummary extends Component<Props> {
 
   renderAmountDisplay: {|
     shouldHideBalance: boolean,
-    amount: BigNumber
+    amount: MultiToken
   |} => Node = (request) => {
     let balanceDisplay;
     if (request.shouldHideBalance) {
       balanceDisplay = (<span>******</span>);
     } else {
+      const amount = request.amount.getDefault(this.props.networkId);
       const [beforeDecimalRewards, afterDecimalRewards] = splitAmount(
-        request.amount,
+        amount,
         this.props.meta.decimalPlaces,
       );
 
@@ -110,9 +114,9 @@ export default class WalletSummary extends Component<Props> {
                 <div className={styles.numberOfTransactions}>
                   {intl.formatMessage(messages.numOfTxsLabel)}: <span>{numberOfTransactions}</span>
                 </div>
-                {(pendingAmount.incoming.gt(0) || pendingAmount.outgoing.gt(0)) && (
+                {(!pendingAmount.incoming.isEmpty() || !pendingAmount.outgoing.isEmpty()) && (
                   <div className={styles.pendingSection}>
-                    {pendingAmount.incoming.isGreaterThan(0) &&
+                    {!pendingAmount.incoming.isEmpty() &&
                       <div className={styles.pendingConfirmation}>
                         {`${intl.formatMessage(messages.pendingIncomingConfirmationLabel)}`}
                         :&nbsp;
@@ -135,7 +139,7 @@ export default class WalletSummary extends Component<Props> {
                           )}
                       </div>
                     }
-                    {pendingAmount.outgoing.isGreaterThan(0) &&
+                    {!pendingAmount.outgoing.isEmpty() &&
                       <div className={styles.pendingConfirmation}>
                         {`${intl.formatMessage(messages.pendingOutgoingConfirmationLabel)}`}
                         :&nbsp;

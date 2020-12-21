@@ -1360,13 +1360,20 @@ async function genJormungandrAssetMap(
 
   const primaryAssetConstants = defaultAssets.filter(asset => asset.NetworkId === network.NetworkId)
   const tokenIds = Array.from(new Set(newTxs.flatMap(_tx => [
+    // ...tx.inputs
+    //   .flatMap(input => input.assets)
+    //   .map(asset => asset.tokenId),
+    // ...tx.outputs
+    //   .flatMap(output => output.assets)
+    //   .map(asset => asset.tokenId),
+    // force inclusion of primary token for chain
     ...primaryAssetConstants.map(asset => asset.Identifier)
   ])));
 
-  const existingDbRows = await deps.GetToken.fromIdentifier(
+  const existingDbRows = (await deps.GetToken.fromIdentifier(
     db, dbTx,
     tokenIds
-  );
+  )).filter(row => row.NetworkId === network.NetworkId);
 
   const result = new Map<string, $ReadOnly<TokenRow>>();
   existingDbRows.forEach(row => result.set(row.Identifier, row));

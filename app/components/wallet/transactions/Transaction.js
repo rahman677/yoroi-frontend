@@ -2,7 +2,6 @@
 import React, { Component } from 'react';
 import type { Node } from 'react';
 import { observer } from 'mobx-react';
-import BigNumber from 'bignumber.js';
 import { defineMessages, intlShape } from 'react-intl';
 import type {
   $npm$ReactIntl$IntlFormat,
@@ -34,6 +33,9 @@ import type { TxMemoTableRow } from '../../../api/ada/lib/storage/database/memos
 import CopyableAddress from '../../widgets/CopyableAddress';
 import type { Notification } from '../../../types/notificationType';
 import { genAddressLookup } from '../../../stores/stateless/addressStores';
+import {
+  MultiToken,
+} from '../../../api/common/lib/MultiToken';
 
 const messages = defineMessages({
   type: {
@@ -197,6 +199,7 @@ type Props = {|
   +notification: ?Notification,
   +decimalPlaces: number, // TODO: this should be tied to individual values, not the currency itself
   +addressToDisplayString: string => string,
+  +networkId: number,
 |};
 
 type State = {|
@@ -267,19 +270,21 @@ export default class Transaction extends Component<Props, State> {
   }
 
   renderAmountDisplay: {|
-    amount: BigNumber,
+    amount: MultiToken,
     decimalPlaces: number,
   |} => Node = (request) => {
     if (this.props.shouldHideBalance) {
       return (<span>******</span>);
     }
 
+    const amount = request.amount.getDefault(this.props.networkId);
+
     const { unitOfAccount } = this.props;
     if (unitOfAccount.priceInfo != null) {
       const { priceInfo } = unitOfAccount;
       return (
         <>
-          { calculateAndFormatValue(request.amount, priceInfo.Price) + ' ' + priceInfo.To }
+          { calculateAndFormatValue(amount, priceInfo.Price) + ' ' + priceInfo.To }
           <div className={styles.amountSmall}>
             {request.amount.toString()} {priceInfo.From}
           </div>
@@ -287,7 +292,7 @@ export default class Transaction extends Component<Props, State> {
       );
     }
     const [beforeDecimalRewards, afterDecimalRewards] = splitAmount(
-      request.amount,
+      amount,
       request.decimalPlaces
     );
 
@@ -305,21 +310,23 @@ export default class Transaction extends Component<Props, State> {
   }
 
   renderFeeDisplay: {|
-    amount: BigNumber,
+    amount: MultiToken,
     decimalPlaces: number,
     type: TransactionDirectionType,
   |} => Node = (request) => {
     if (this.props.shouldHideBalance) {
       return (<span>******</span>);
     }
+    const amount = request.amount.getDefault(this.props.networkId);
+
     const { unitOfAccount } = this.props;
     if (unitOfAccount.priceInfo != null) {
       const { priceInfo } = unitOfAccount;
       return (
         <>
-          { calculateAndFormatValue(request.amount.abs(), priceInfo.Price) + ' ' + priceInfo.To }
+          { calculateAndFormatValue(amount.abs(), priceInfo.Price) + ' ' + priceInfo.To }
           <div className={styles.amountSmall}>
-            {request.amount.abs().toString()} {priceInfo.From}
+            {amount.abs().toString()} {priceInfo.From}
           </div>
         </>
       );
@@ -328,7 +335,7 @@ export default class Transaction extends Component<Props, State> {
       return (<span>-</span>);
     }
     const [beforeDecimalRewards, afterDecimalRewards] = splitAmount(
-      request.amount.abs(),
+      amount.abs(),
       request.decimalPlaces
     );
 
@@ -488,7 +495,7 @@ export default class Transaction extends Component<Props, State> {
                           {this.generateAddressButton(address.address)}
                           <div className={styles.fee}>
                             {this.renderAmountDisplay({
-                              amount: address.value.negated(),
+                              amount: address.value.negatedCopy(),
                               decimalPlaces: this.props.decimalPlaces,
                             })} {this.props.unitOfAccount.primaryTicker}
                           </div>

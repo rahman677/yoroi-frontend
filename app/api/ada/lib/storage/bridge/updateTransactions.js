@@ -1756,10 +1756,10 @@ async function genCardanoAssetMap(
     ...primaryAssetConstants.map(asset => asset.Identifier)
   ])));
 
-  const existingDbRows = await deps.GetToken.fromIdentifier(
+  const existingDbRows = (await deps.GetToken.fromIdentifier(
     db, dbTx,
     tokenIds
-  );
+  )).filter(row => row.NetworkId === network.NetworkId);
 
   // const existingTokens = new Set<string>(
   //   existingDbRows.map(row => row.Identifier)
