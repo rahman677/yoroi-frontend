@@ -322,11 +322,9 @@ export default class CardanoStakingPage extends Component<Props> {
             ?? intl.formatMessage(globalMessages.unknownPoolLabel)
           }
           poolHash={delegationTransaction.selectedPools[0]}
-          transactionFee={delegationTx.signTxRequest.fee().getDefault(
-            selectedWallet.getParent().getNetworkInfo().NetworkId
-          )}
-          amountToDelegate={delegationTx.totalAmountToDelegate}
-          approximateReward={approximateReward(delegationTx.totalAmountToDelegate)}
+          transactionFee={delegationTx.signTxRequest.fee().getDefault()}
+          amountToDelegate={delegationTx.totalAmountToDelegate.getDefault()}
+          approximateReward={approximateReward(delegationTx.totalAmountToDelegate.getDefault())}
           isSubmitting={
             this.generated.stores.wallets.sendMoneyRequest.isExecuting
           }

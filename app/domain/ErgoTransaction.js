@@ -8,8 +8,8 @@ import type {
 } from '../api/ada/lib/storage/database/transactionModels/multipart/tables';
 import type {
   DbBlock,
+  NetworkRow,
 } from '../api/ada/lib/storage/database/primitives/tables';
-import type { ApiOptionType } from '../api/common/utils';
 import WalletTransaction, { toAddr } from './WalletTransaction';
 
 export default class ErgoTransaction extends WalletTransaction {
@@ -22,7 +22,7 @@ export default class ErgoTransaction extends WalletTransaction {
       ...UserAnnotation,
     |},
     addressLookupMap: Map<number, string>,
-    api: ApiOptionType,
+    network: $ReadOnly<NetworkRow>,
   |}): ErgoTransaction {
     const { addressLookupMap, tx } = request;
 

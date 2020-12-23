@@ -559,6 +559,7 @@ export type DbTokenInfo = {|
     +Token: $ReadOnly<{|
       TokenId: number,
       Identifier: string,
+      NetworkId: number,
     |}>,
   |}>
 |};

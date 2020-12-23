@@ -38,6 +38,7 @@ import type {
 const tokenTypes = [{
   TokenId: 0,
   Identifier: '',
+  NetworkId: 0,
 }];
 
 const _tokenList = (
@@ -159,8 +160,8 @@ test('self tx', () => {
     '2015-12-13 10:20:30'
   );
   expect(selfTx.type).toEqual(transactionTypes.SELF);
-  expect(selfTx.amount).toEqual(new BigNumber(0));
-  expect(selfTx.fee).toEqual(new BigNumber(-1000000));
+  expect(selfTx.amount.getDefault()).toEqual(new BigNumber(0));
+  expect(selfTx.fee.getDefault()).toEqual(new BigNumber(-1000000));
 });
 
 test('multi tx', () => {
@@ -176,7 +177,7 @@ test('multi tx', () => {
 
 test('sumInputsOutputs - empty', () => {
   _expectEqual(
-    sumInputsOutputs([], []),
+    sumInputsOutputs([], []).getDefault(),
     new BigNumber(0)
   );
 });
@@ -185,13 +186,13 @@ test('sumInputsOutputs', () => {
   _expectEqual(
     sumInputsOutputs(
       [
-        _input(42, 0),
-        _output(43, 0),
-        _input(15, 0),
+        _input(lists[0].ListId, 0),
+        _output(lists[4].ListId, 0),
+        _input(lists[2].ListId, 0),
       ],
       lists.map(list => tokenEntry(list)),
-    ),
-    new BigNumber(42 + 43 + 15)
+    ).getDefault(),
+    new BigNumber(4000000)
   );
 });
 

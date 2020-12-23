@@ -47,6 +47,9 @@ import {
 } from '../../../app/api/ada/lib/storage/database/walletTypes/bip44/api/utils';
 import { RustModule } from '../../../app/api/ada/lib/cardanoCrypto/rustLoader';
 import type { ISignRequest } from '../../../app/api/common/lib/transactions/ISignRequest';
+import {
+  MultiToken,
+} from '../../../app/api/common/lib/MultiToken';
 
 function genMockJormungandrCache(dummyWallet: PublicDeriver<>) {
   const pendingRequest = new CachedRequest(_publicDeriver => Promise.resolve([]));
@@ -59,7 +62,7 @@ function genMockJormungandrCache(dummyWallet: PublicDeriver<>) {
     total: 0,
   }));
   const getBalanceRequest = new CachedRequest(_request => Promise.resolve(
-    new BigNumber(0),
+    new MultiToken([]),
   ));
   return {
     conceptualWalletCache: {
@@ -295,10 +298,14 @@ export const genJormungandrUndelegateTx = (
     unsignedTx: IOs,
     changeAddr: [],
     certificate: undefined, // TODO
+  }, {
+    NetworkId: publicDeriver.getParent().getNetworkInfo().NetworkId,
   });
 };
 
-export const genTentativeJormungandrTx = (): {|
+export const genTentativeJormungandrTx = (
+  networkId: number,
+): {|
   tentativeTx: null | ISignRequest<any>,
   inputAmount: string,
   fee: BigNumber,
@@ -334,6 +341,8 @@ export const genTentativeJormungandrTx = (): {|
       unsignedTx,
       changeAddr: [],
       certificate: undefined,
+    }, {
+      NetworkId: networkId,
     }),
     inputAmount,
     fee,

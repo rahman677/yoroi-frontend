@@ -209,7 +209,6 @@ export default class TransferSendPage extends Component<Props> {
           .get(selected.getParent().getNetworkInfo().NetworkId) ?? (() => { throw new Error('No explorer for wallet network'); })()
         }
         transferTx={this.props.toTransferTx(tentativeTx)}
-        networkId={selected.getParent().getNetworkInfo().NetworkId}
         onSubmit={{
           label: this.props.onSubmit.label,
           trigger: this.submit,

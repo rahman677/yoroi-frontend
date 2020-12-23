@@ -176,15 +176,18 @@ export const Loading = (): Node => {
             unconfirmedAmount: {
               total: new MultiToken([{
                 identifier: primaryAssetConstant.Identifier,
-                amount: new BigNumber(0)
+                amount: new BigNumber(0),
+                networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
               }]),
               incoming: new MultiToken([{
                 identifier: primaryAssetConstant.Identifier,
-                amount: new BigNumber(0)
+                amount: new BigNumber(0),
+                networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
               }]),
               outgoing: new MultiToken([{
                 identifier: primaryAssetConstant.Identifier,
-                amount: new BigNumber(0)
+                amount: new BigNumber(0),
+                networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
               }]),
               incomingInSelectedCurrency: new BigNumber(0),
               outgoingInSelectedCurrency: new BigNumber(0),
@@ -301,7 +304,6 @@ const genPropsForTransactions: {|
         Price: 5,
         Time: timestamp,
       }),
-      request.wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     ),
     isExporting: request.txExport != null ? request.txExport.isExporting : false,
     exportError: request.txExport?.exportError,
@@ -397,11 +399,13 @@ export const Transaction = (): Node => {
     ),
     amount: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(1000)
+      amount: new BigNumber(1000),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
     fee: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(5)
+      amount: new BigNumber(5),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
     date: new Date(0),
     addresses: {
@@ -409,7 +413,8 @@ export const Transaction = (): Node => {
         address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
         value: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: new BigNumber(1010)
+          amount: new BigNumber(1010),
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }]),
       }],
       to: [
@@ -417,14 +422,16 @@ export const Transaction = (): Node => {
           address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
           value: new MultiToken([{
             identifier: primaryAssetConstant.Identifier,
-            amount: new BigNumber(5)
+            amount: new BigNumber(5),
+            networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
           }]),
         },
         {
           address: 'DdzFFzCqrhseVmPAqenKdENxL5Fp7DW82CF6wk8SnWoCiUDFfVfqD6cHFCFgv1ySmFhpPod3hYqzuRFs48BbT6QR9rk9bYMdgodBXFny',
           value: new MultiToken([{
             identifier: primaryAssetConstant.Identifier,
-            amount: new BigNumber(1000)
+            amount: new BigNumber(1000),
+            networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
           }]),
         },
       ],
@@ -514,11 +521,13 @@ export const TransactionWithMemo = (): Node => {
     ),
     amount: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(1000)
+      amount: new BigNumber(1000),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
     fee: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(6)
+      amount: new BigNumber(6),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
     date: new Date(0),
     addresses: {
@@ -526,14 +535,16 @@ export const TransactionWithMemo = (): Node => {
         address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
         value: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: new BigNumber(1005)
+          amount: new BigNumber(1005),
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }]),
       }],
       to: [{
         address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
         value: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: new BigNumber(1000)
+          amount: new BigNumber(1000),
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }])
       }],
     },
@@ -609,11 +620,13 @@ export const MemoDialog = (): Node => {
     ),
     amount: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(1000)
+      amount: new BigNumber(1000),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
     fee: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(5)
+      amount: new BigNumber(5),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
     date: new Date(0),
     addresses: {
@@ -621,14 +634,16 @@ export const MemoDialog = (): Node => {
         address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
         value: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: new BigNumber(1005)
+          amount: new BigNumber(1005),
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }]),
       }],
       to: [{
         address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
         value: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: new BigNumber(1000)
+          amount: new BigNumber(1000),
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }]),
       }],
     },
@@ -751,11 +766,13 @@ export const ManyTransactions = (): Node => {
       type: transactionTypes.EXPEND,
       amount: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(1000)
+      amount: new BigNumber(1000),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
     fee: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(5)
+      amount: new BigNumber(5),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
       // make groups of 2 transactions each
       date: new Date(Math.floor(i / 2) * (24 * 60 * 60 * 1000)),
@@ -764,14 +781,16 @@ export const ManyTransactions = (): Node => {
           address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
           value: new MultiToken([{
             identifier: primaryAssetConstant.Identifier,
-            amount: new BigNumber(1005)
+            amount: new BigNumber(1005),
+            networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
           }]),
         }],
         to: [{
           address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
           value: new MultiToken([{
             identifier: primaryAssetConstant.Identifier,
-            amount: new BigNumber(1000)
+            amount: new BigNumber(1000),
+            networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
           }])
         }],
       },
@@ -832,11 +851,13 @@ export const TxHistoryExport = (): Node => {
     type: transactionTypes.EXPEND,
     amount: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(1000)
+      amount: new BigNumber(1000),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
     fee: new MultiToken([{
       identifier: primaryAssetConstant.Identifier,
-      amount: new BigNumber(6)
+      amount: new BigNumber(6),
+      networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
     }]),
     date: new Date(0),
     addresses: {
@@ -844,14 +865,16 @@ export const TxHistoryExport = (): Node => {
         address: 'Ae2tdPwUPEZCfyggUgSxD1E5UCx5f5hrXCdvQjJszxE7epyZ4ox9vRNUbHf',
         value: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: new BigNumber(1005)
+          amount: new BigNumber(1005),
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }]),
       }],
       to: [{
         address: 'Ae2tdPwUPEZFXnw5T5aXoaP28yw4mRLeYomaG9mPGCFbPUtw368ZWYKp1zM',
         value: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: new BigNumber(1000)
+          amount: new BigNumber(1000),
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }])
       }],
     },

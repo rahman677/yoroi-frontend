@@ -10,8 +10,8 @@ import type {
 import type {
   DbBlock,
   CertificatePart,
+  NetworkRow,
 } from '../api/ada/lib/storage/database/primitives/tables';
-import type { ApiOptionType } from '../api/common/utils';
 import WalletTransaction, { toAddr } from './WalletTransaction';
 import type { WalletTransactionCtorData } from './WalletTransaction';
 import { TransactionType } from '../api/ada/lib/storage/database/primitives/tables';
@@ -56,7 +56,7 @@ export default class CardanoShelleyTransaction extends WalletTransaction {
       ...UserAnnotation,
     |},
     addressLookupMap: Map<number, string>,
-    api: ApiOptionType,
+    network: $ReadOnly<NetworkRow>,
   |}): CardanoShelleyTransaction {
     const { addressLookupMap, tx } = request;
     if (tx.transaction.Type !== TransactionType.CardanoShelley) {
@@ -74,7 +74,8 @@ export default class CardanoShelleyTransaction extends WalletTransaction {
       // and not outputs - inputs since Shelley has implicit inputs like refunds or withdrawals
       fee: new MultiToken([{
         identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
-        amount: new BigNumber(Extra.Fee)
+        amount: new BigNumber(Extra.Fee),
+        networkId: request.network.NetworkId,
       }]),
       ttl: Extra.Ttl != null ? new BigNumber(Extra.Ttl) : undefined,
       metadata: Extra.Metadata,

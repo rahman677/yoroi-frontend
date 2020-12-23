@@ -35,22 +35,23 @@ export type MangledAmountsRequest = {|
   publicDeriver: PublicDeriver<>,
 |};
 export type MangledAmountsResponse = {|
-  canUnmangle: BigNumber,
-  cannotUnmangle: BigNumber,
+  canUnmangle: MultiToken,
+  cannotUnmangle: MultiToken,
 |};
 export type MangledAmountFunc = MangledAmountsRequest => Promise<MangledAmountsResponse>;
 
 export async function getUnmangleAmounts(
   request: MangledAmountsRequest
 ): Promise<MangledAmountsResponse> {
-  const canUnmangle: Array<BigNumber> = [];
-  const cannotUnmangle: Array<BigNumber> = [];
+  // note: keep track of arrays so we know the # of UTXO entries included
+  const canUnmangle: Array<MultiToken> = [];
+  const cannotUnmangle: Array<MultiToken> = [];
 
   const withUtxos = asGetAllUtxos(request.publicDeriver);
   if (withUtxos == null) {
     return {
-      canUnmangle: new BigNumber(0),
-      cannotUnmangle: new BigNumber(0),
+      canUnmangle: new MultiToken([]),
+      cannotUnmangle: new MultiToken([]),
     };
   }
   const utxos = await withUtxos.getAllUtxos();
@@ -58,8 +59,8 @@ export async function getUnmangleAmounts(
   const withStakingKey = asGetStakingKey(request.publicDeriver);
   if (withStakingKey == null) {
     return {
-      canUnmangle: new BigNumber(0),
-      cannotUnmangle: new BigNumber(0),
+      canUnmangle: new MultiToken([]),
+      cannotUnmangle: new MultiToken([]),
     };
   }
 
@@ -87,16 +88,16 @@ export async function getUnmangleAmounts(
       const tokens = new MultiToken(utxo.output.tokens.map(token => ({
         identifier: token.Token.Identifier,
         amount: new BigNumber(token.TokenList.Amount),
+        networkId: token.Token.NetworkId,
       })));
-      const value = tokens.getDefault(network.NetworkId);
-      if (value.gt(config.LinearFee.coefficient)) {
-        canUnmangle.push(value);
+      if (tokens.getDefault().gt(config.LinearFee.coefficient)) {
+        canUnmangle.push(tokens);
       } else {
-        cannotUnmangle.push(value);
+        cannotUnmangle.push(tokens);
       }
     }
     const canUnmangleSum = canUnmangle.reduce(
-      (sum, val) => sum.plus(val),
+      (sum, val) => sum.plus(val.getDefault()),
       new BigNumber(0)
     );
     const expectedFee = new BigNumber(canUnmangle.length + 1)
@@ -144,25 +145,25 @@ export async function getUnmangleAmounts(
       const tokens = new MultiToken(utxo.output.tokens.map(token => ({
         identifier: token.Token.Identifier,
         amount: new BigNumber(token.TokenList.Amount),
+        networkId: token.Token.NetworkId,
       })));
-      const value = tokens.getDefault(network.NetworkId);
       if (filter({
         utxo_id: utxo.output.Transaction.Hash + txIndex,
         tx_hash: utxo.output.Transaction.Hash,
         tx_index: txIndex,
         receiver: utxo.address,
-        amount: value.toString(),
+        amount: tokens.getDefault().toString(),
       })) {
-        canUnmangle.push(value);
+        canUnmangle.push(tokens);
       } else {
-        cannotUnmangle.push(value);
+        cannotUnmangle.push(tokens);
       }
     }
   }
 
-  const flattenAmount = (list: Array<BigNumber>): BigNumber => list.reduce(
-    (total, next) => total.plus(next),
-    new BigNumber(0)
+  const flattenAmount = (list: Array<MultiToken>): MultiToken => list.reduce(
+    (total, next) => total.joinAddMutable(next),
+    new MultiToken([])
   );
 
   return {
@@ -203,8 +204,9 @@ export function getMangledFilter(
       const tokens = new MultiToken(utxo.output.tokens.map(token => ({
         identifier: token.Token.Identifier,
         amount: new BigNumber(token.TokenList.Amount),
+        networkId: token.Token.NetworkId,
       })));
-      const value = tokens.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId);
+      const value = tokens.getDefault();
       return filter({
         utxo_id: utxo.output.Transaction.Hash + txIndex,
         tx_hash: utxo.output.Transaction.Hash,
@@ -229,8 +231,9 @@ export function getMangledFilter(
       const tokens = new MultiToken(utxo.output.tokens.map(token => ({
         identifier: token.Token.Identifier,
         amount: new BigNumber(token.TokenList.Amount),
+        networkId: token.Token.NetworkId,
       })));
-      const value = tokens.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId);
+      const value = tokens.getDefault();
       return value.gt(config.LinearFee.coefficient);
     };
   }

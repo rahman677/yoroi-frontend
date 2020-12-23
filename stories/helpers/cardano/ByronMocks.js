@@ -45,6 +45,9 @@ import { RustModule } from '../../../app/api/ada/lib/cardanoCrypto/rustLoader';
 import type { ISignRequest } from '../../../app/api/common/lib/transactions/ISignRequest';
 import DelegationStore from '../../../app/stores/toplevel/DelegationStore';
 import AdaDelegationStore from '../../../app/stores/ada/AdaDelegationStore';
+import {
+  MultiToken,
+} from '../../../app/api/common/lib/MultiToken';
 
 function genByronSigningWallet(
   genHardwareInfo?: number => HwWalletMetaRow,
@@ -103,7 +106,7 @@ function genMockByronBip44Cache(dummyWallet: PublicDeriver<>) {
     total: 0,
   }));
   const getBalanceRequest = new CachedRequest(_request => Promise.resolve(
-    new BigNumber(0),
+    new MultiToken([]),
   ));
   return {
     conceptualWalletCache: {
@@ -293,6 +296,7 @@ export const genTentativeByronTx = (
         ChainNetworkId: Number.parseInt(baseConfig.ChainNetworkId, 10),
         PoolDeposit: new BigNumber(baseConfig.PoolDeposit),
         KeyDeposit: new BigNumber(baseConfig.KeyDeposit),
+        NetworkId: publicDeriver.getParent().getNetworkInfo().NetworkId,
       },
       {
         neededHashes: new Set(),

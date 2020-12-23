@@ -43,7 +43,8 @@ export async function buildYoroiTransferTx(payload: {|
     linearFee: RustModule.WalletV4.LinearFee,
     minimumUtxoVal: RustModule.WalletV4.BigNum,
     poolDeposit: RustModule.WalletV4.BigNum,
-  |}
+    networkId: number,
+  |},
 |}): Promise<TransferTx> {
   try {
     const { senderUtxos, } = payload;
@@ -55,7 +56,8 @@ export async function buildYoroiTransferTx(payload: {|
         .reduce(
           (acc, amount) => acc.plus(amount),
           new BigNumber(0)
-        )
+        ),
+      networkId: payload.protocolParams.networkId,
     }]);
 
     // first build a transaction to see what the fee will be
@@ -67,10 +69,11 @@ export async function buildYoroiTransferTx(payload: {|
     );
 
     const fee = new MultiToken([{
-      identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+      identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
       amount: new BigNumber(
         unsignedTxResponse.txBuilder.get_fee_if_set()?.to_str() || '0'
-      ).plus(unsignedTxResponse.txBuilder.get_deposit().to_str())
+      ).plus(unsignedTxResponse.txBuilder.get_deposit().to_str()),
+      networkId: payload.protocolParams.networkId,
     }]);
 
     // sign inputs

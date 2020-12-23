@@ -16,7 +16,7 @@ import {
 import {
   PublicDeriver,
 } from '../../api/ada/lib/storage/models/PublicDeriver/index';
-import { getCardanoHaskellBaseConfig } from '../../api/ada/lib/storage/database/prepackaged/networks';
+import { getCardanoHaskellBaseConfig, } from '../../api/ada/lib/storage/database/prepackaged/networks';
 import {
   genTimeToSlot,
 } from '../../api/ada/lib/storage/bridge/timeUtils';
@@ -24,6 +24,7 @@ import {
   isLedgerNanoWallet,
   isTrezorTWallet,
 } from '../../api/ada/lib/storage/models/ConceptualWallet/index';
+import { MultiToken } from '../../api/common/lib/MultiToken';
 
 export default class AdaDelegationTransactionStore extends Store {
 
@@ -134,7 +135,7 @@ export default class AdaDelegationTransactionStore extends Store {
       poolRequest: request.poolRequest,
       registrationStatus: adaDelegationRequests.getRegistrationHistory.result?.current ?? false,
       valueInAccount: delegationRequests.getDelegatedBalance.result?.accountPart
-        ?? new BigNumber(0),
+        ?? new MultiToken([]),
       absSlotNumber,
     }).promise;
     if (delegationTxPromise == null) {

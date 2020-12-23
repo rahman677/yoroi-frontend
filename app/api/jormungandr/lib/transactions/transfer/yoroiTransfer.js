@@ -43,8 +43,11 @@ export async function buildYoroiTransferTx(payload: {|
   keyLevel: number,
   signingKey: RustModule.WalletV3.Bip32PrivateKey,
   useLegacyWitness: boolean,
-  genesisHash: string,
-  feeConfig: JormungandrFeeConfig,
+  protocolParams: {|
+    feeConfig: JormungandrFeeConfig,
+    networkId: number,
+    genesisHash: string,
+  |},
 |}): Promise<TransferTx> {
   try {
     const { senderUtxos, outputAddr, } = payload;
@@ -56,7 +59,8 @@ export async function buildYoroiTransferTx(payload: {|
         .reduce(
           (acc, amount) => acc.plus(amount),
           new BigNumber(0)
-        )
+        ),
+      networkId: payload.protocolParams.networkId,
     }]);
 
     // first build a transaction to see what the fee will be
@@ -64,9 +68,12 @@ export async function buildYoroiTransferTx(payload: {|
       outputAddr,
       senderUtxos,
       undefined,
-      payload.feeConfig
+      {
+        feeConfig: payload.protocolParams.feeConfig,
+        networkId: payload.protocolParams.networkId,
+      },
     );
-    const fee = getJormungandrTxFee(unsignedTxResponse.IOs);
+    const fee = getJormungandrTxFee(unsignedTxResponse.IOs, payload.protocolParams.networkId);
 
     // sign inputs
     const fragment = signTransaction(
@@ -75,7 +82,7 @@ export async function buildYoroiTransferTx(payload: {|
       payload.signingKey,
       payload.useLegacyWitness,
       undefined,
-      payload.genesisHash,
+      payload.protocolParams.genesisHash,
     );
 
     const uniqueSenders = Array.from(new Set(senderUtxos.map(utxo => utxo.receiver)));
@@ -108,8 +115,11 @@ export async function yoroiTransferTxFromAddresses(payload: {|
   network: $ReadOnly<NetworkRow>,
   getUTXOsForAddresses: AddressUtxoFunc,
   useLegacyWitness: boolean,
-  genesisHash: string,
-  feeConfig: JormungandrFeeConfig,
+  protocolParams: {|
+    feeConfig: JormungandrFeeConfig,
+    networkId: number,
+    genesisHash: string,
+  |},
 |}): Promise<TransferTx> {
   const senderUtxos = await toSenderUtxos({
     network: payload.network,
@@ -122,7 +132,6 @@ export async function yoroiTransferTxFromAddresses(payload: {|
     signingKey: payload.signingKey,
     senderUtxos,
     useLegacyWitness: payload.useLegacyWitness,
-    genesisHash: payload.genesisHash,
-    feeConfig: payload.feeConfig,
+    protocolParams: payload.protocolParams,
   });
 }

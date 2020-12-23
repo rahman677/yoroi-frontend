@@ -17,6 +17,10 @@ import type { GetBalanceFunc } from '../../api/common/types';
 import MyWalletsPage from './MyWalletsPage';
 import { ServerStatusErrors } from '../../types/serverStatusErrorType';
 import { ROUTES } from '../../routes-config';
+import {
+  MultiToken,
+} from '../../api/common/lib/MultiToken';
+import { defaultAssets, } from '../../api/ada/lib/storage/database/prepackaged/networks';
 
 export default {
   title: `${__filename.split('.')[0]}`,
@@ -30,7 +34,13 @@ export const Wallets = (): Node => {
     const wallet = genShelleyCIP1852SigningWalletWithCache();
 
     const balance: CachedRequest<GetBalanceFunc> = new CachedRequest(_request => Promise.resolve(
-      new BigNumber(3),
+      new MultiToken([{
+        amount: new BigNumber(3),
+        networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
+        identifier: defaultAssets.filter(
+          asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+        )[0].Identifier,
+      }]),
     ));
     const calculationCases = {
       Pending: 0,

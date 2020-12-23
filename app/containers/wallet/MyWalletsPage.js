@@ -91,7 +91,7 @@ export default class MyWalletsPage extends Component<Props> {
       const apiMeta = getApiMeta(getApiForNetwork(wallet.getParent().getNetworkInfo()))?.meta;
       if (apiMeta == null) throw new Error(`${nameof(MyWalletsPage)} no API selected`);
       const amountPerUnit = new BigNumber(10).pow(apiMeta.decimalPlaces);
-      return balanceResult?.dividedBy(amountPerUnit);
+      return balanceResult?.getDefault().dividedBy(amountPerUnit);
     });
     for (const walletUtxoAmount of walletBalances) {
       if (walletUtxoAmount == null) {
@@ -185,7 +185,7 @@ export default class MyWalletsPage extends Component<Props> {
     const txRequests = this.generated.stores.transactions
       .getTxRequests(publicDeriver);
     const balance = txRequests.requests.getBalanceRequest.result
-      ?.dividedBy(amountPerUnit) || null;
+      ?.getDefault().dividedBy(amountPerUnit) || null;
 
     const withPubKey = asGetPublicKey(publicDeriver);
     const plate = withPubKey == null
@@ -314,7 +314,7 @@ export default class MyWalletsPage extends Component<Props> {
     const apiMeta = getApiMeta(getApiForNetwork(publicDeriver.getParent().getNetworkInfo()))?.meta;
     if (apiMeta == null) throw new Error(`${nameof(MyWalletsPage)} no API selected`);
     const amountPerUnit = new BigNumber(10).pow(apiMeta.decimalPlaces);
-    return balanceResult.accountPart.dividedBy(amountPerUnit);
+    return balanceResult.accountPart.getDefault().dividedBy(amountPerUnit);
   }
 
   @computed get generated(): {|

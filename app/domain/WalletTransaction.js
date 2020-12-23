@@ -98,7 +98,6 @@ export function calculateUnconfirmedAmount(
   lastSyncBlock: number,
   assuranceMode: AssuranceMode,
   getUnitOfAccount: Date => (void | $ReadOnly<PriceDataRow>),
-  networkId: number,
 ): UnconfirmedAmount {
   const unconfirmedAmount = {
     total: new MultiToken([]),
@@ -131,7 +130,7 @@ export function calculateUnconfirmedAmount(
             unconfirmedAmount.outgoingInSelectedCurrency =
               unconfirmedAmount.outgoingInSelectedCurrency.plus(
                 transaction.amount
-                  .getDefault(networkId)
+                  .getDefault()
                   .absoluteValue()
                   .multipliedBy(String(unitOfAccount.Price))
               );
@@ -152,7 +151,7 @@ export function calculateUnconfirmedAmount(
             unconfirmedAmount.incomingInSelectedCurrency =
               unconfirmedAmount.incomingInSelectedCurrency.plus(
                 transaction.amount
-                  .getDefault(networkId)
+                  .getDefault()
                   .absoluteValue()
                   .multipliedBy(String(unitOfAccount.Price))
               );
@@ -191,6 +190,7 @@ export const toAddr: {|
         tokens.add({
           identifier: token.Token.Identifier,
           amount: new BigNumber(token.TokenList.Amount),
+          networkId: token.Token.NetworkId,
         });
       }
     }

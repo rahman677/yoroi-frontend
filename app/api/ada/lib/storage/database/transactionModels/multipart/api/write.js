@@ -61,6 +61,7 @@ export class ModifyJormungandrTx {
         tokenList: Array<{|
           TokenList: TokenListInsert,
           identifier: string,
+          networkId: number,
         |}>,
       |},
     |},
@@ -124,6 +125,9 @@ export class ModifyJormungandrTx {
           Identifier: tokenList.filter(
             item => item.TokenList.TokenId === entry.TokenId
           )[0].identifier,
+          NetworkId: tokenList.filter(
+            item => item.TokenList.TokenId === entry.TokenId
+          )[0].networkId,
         }
       })),
     };
@@ -154,6 +158,7 @@ export class ModifyCardanoByronTx {
         tokenList: Array<{|
           TokenList: TokenListInsert,
           identifier: string,
+          networkId: number,
         |}>,
       |},
     |},
@@ -198,6 +203,9 @@ export class ModifyCardanoByronTx {
           Identifier: tokenList.filter(
             item => item.TokenList.TokenId === entry.TokenId
           )[0].identifier,
+          NetworkId: tokenList.filter(
+            item => item.TokenList.TokenId === entry.TokenId
+          )[0].networkId,
         }
       })),
     };
@@ -234,6 +242,7 @@ export class ModifyCardanoShelleyTx {
         tokenList: Array<{|
           TokenList: TokenListInsert,
           identifier: string,
+          networkId: number,
         |}>,
       |},
     |},
@@ -299,6 +308,9 @@ export class ModifyCardanoShelleyTx {
           Identifier: tokenList.filter(
             item => item.TokenList.TokenId === entry.TokenId
           )[0].identifier,
+          NetworkId: tokenList.filter(
+            item => item.TokenList.TokenId === entry.TokenId
+          )[0].networkId,
         }
       })),
     };
@@ -330,6 +342,7 @@ export class ModifyErgoTx {
         tokenList: Array<{|
           TokenList: TokenListInsert,
           identifier: string,
+          networkId: number,
         |}>,
       |},
     |},
@@ -374,6 +387,9 @@ export class ModifyErgoTx {
           Identifier: tokenList.filter(
             item => item.TokenList.TokenId === entry.TokenId
           )[0].identifier,
+          NetworkId: tokenList.filter(
+            item => item.TokenList.TokenId === entry.TokenId
+          )[0].networkId,
         }
       })),
     };

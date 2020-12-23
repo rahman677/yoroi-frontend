@@ -1,7 +1,6 @@
 // @flow
 
 import { observable, action, reaction } from 'mobx';
-import BigNumber from 'bignumber.js';
 import Store from '../base/Store';
 import LocalizedRequest from '../lib/LocalizedRequest';
 import type {
@@ -17,6 +16,7 @@ import {
 } from '../../api/ada/lib/storage/models/PublicDeriver/index';
 import type { PoolRequest } from '../../api/jormungandr/lib/storage/bridge/delegationUtils';
 import type { SelectedPool } from '../../actions/jormungandr/delegation-transaction-actions';
+import { MultiToken } from '../../api/common/lib/MultiToken';
 
 export default class JormungandrDelegationTransactionStore extends Store {
 
@@ -92,7 +92,7 @@ export default class JormungandrDelegationTransactionStore extends Store {
       publicDeriver: basePubDeriver,
       poolRequest: request.poolRequest,
       valueInAccount: delegationRequests.getDelegatedBalance.result?.accountPart
-        ?? new BigNumber(0),
+        ?? new MultiToken([]),
     }).promise;
     if (delegationTxPromise == null) {
       throw new Error(`${nameof(this._createTransaction)} should never happen`);

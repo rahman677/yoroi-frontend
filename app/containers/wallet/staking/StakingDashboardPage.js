@@ -68,6 +68,9 @@ import DeregisterDialogContainer from '../../transfer/DeregisterDialogContainer'
 import type { GeneratedData as DeregisterDialogContainerData } from '../../transfer/DeregisterDialogContainer';
 import type { GeneratedData as WithdrawalTxDialogContainerData } from '../../transfer/WithdrawalTxDialogContainer';
 import WithdrawalTxDialogContainer from '../../transfer/WithdrawalTxDialogContainer';
+import {
+  MultiToken,
+} from '../../../api/common/lib/MultiToken';
 
 export type GeneratedData = typeof StakingDashboardPage.prototype.generated;
 
@@ -289,9 +292,10 @@ export default class StakingDashboardPage extends Component<Props> {
             .isExecuting
         }
         isSubmitting={this.generated.stores.wallets.sendMoneyRequest.isExecuting}
-        transactionFee={getJormungandrTxFee(delegationTx.signTxRequest.self()).getDefault(
-          publicDeriver.getParent().getNetworkInfo().NetworkId
-        )}
+        transactionFee={getJormungandrTxFee(
+          delegationTx.signTxRequest.self(),
+          publicDeriver.getParent().getNetworkInfo().NetworkId,
+        ).getDefault()}
         staleTx={delegationTxStore.isStale}
         meta={{
           decimalPlaces: apiMeta.decimalPlaces.toNumber(),
@@ -756,7 +760,7 @@ export default class StakingDashboardPage extends Component<Props> {
     const balance = txRequests.requests.getBalanceRequest.result;
     const rewardBalance =
       request.delegationRequests.getDelegatedBalance.result == null
-        ? 0
+        ? new MultiToken([])
         : request.delegationRequests.getDelegatedBalance.result.accountPart;
 
     const apiMeta = getApiMeta(getApiForNetwork(request.publicDeriver.getParent().getNetworkInfo()))
@@ -773,8 +777,8 @@ export default class StakingDashboardPage extends Component<Props> {
           decimalPlaces: apiMeta.decimalPlaces.toNumber(),
           primaryTicker: apiMeta.primaryTicker,
         }}
-        canUnmangleSum={unmangledAmountsRequest?.canUnmangle ?? new BigNumber(0)}
-        cannotUnmangleSum={unmangledAmountsRequest?.cannotUnmangle ?? new BigNumber(0)}
+        canUnmangleSum={unmangledAmountsRequest?.canUnmangle.getDefault() ?? new BigNumber(0)}
+        cannotUnmangleSum={unmangledAmountsRequest?.cannotUnmangle.getDefault() ?? new BigNumber(0)}
         onUnmangle={() =>
           this.generated.actions.dialogs.open.trigger({
             dialog: UnmangleTxDialogContainer,
@@ -783,15 +787,17 @@ export default class StakingDashboardPage extends Component<Props> {
         totalAdaSum={
           balance == null
             ? undefined
-            : this.hideOrFormat(balance.plus(rewardBalance).dividedBy(amountPerUnit), apiMeta)
+            : this.hideOrFormat(
+              balance.joinAddCopy(rewardBalance).getDefault().dividedBy(amountPerUnit), apiMeta
+            )
         }
         totalRewards={
           !showRewardAmount || request.delegationRequests.getDelegatedBalance.result == null
             ? undefined
             : this.hideOrFormat(
-                request.delegationRequests.getDelegatedBalance.result.accountPart.dividedBy(
-                  amountPerUnit
-                ),
+                request.delegationRequests.getDelegatedBalance.result.accountPart
+                  .getDefault()
+                  .dividedBy(amountPerUnit),
                 apiMeta
               )
         }
@@ -813,7 +819,10 @@ export default class StakingDashboardPage extends Component<Props> {
             : this.hideOrFormat(
                 currentlyDelegating
                   ? request.delegationRequests.getDelegatedBalance.result.utxoPart
-                      .plus(request.delegationRequests.getDelegatedBalance.result.accountPart)
+                      .joinAddCopy(
+                        request.delegationRequests.getDelegatedBalance.result.accountPart
+                      )
+                      .getDefault()
                       .dividedBy(amountPerUnit)
                   : new BigNumber(0),
                 apiMeta

@@ -67,16 +67,10 @@ export default class WalletSendConfirmationDialogContainer extends Component<Pro
             publicDeriver.getParent().getNetworkInfo().NetworkId
           ) ?? (() => { throw new Error('No explorer for wallet network'); })()
         }
-        amount={totalInput.joinSubtractCopy(fee).getDefault(
-          publicDeriver.getParent().getNetworkInfo().NetworkId
-        )}
+        amount={totalInput.joinSubtractCopy(fee).getDefault()}
         receivers={receivers}
-        totalAmount={totalInput.getDefault(
-          publicDeriver.getParent().getNetworkInfo().NetworkId
-        )}
-        transactionFee={fee.getDefault(
-          publicDeriver.getParent().getNetworkInfo().NetworkId
-        )}
+        totalAmount={totalInput.getDefault()}
+        transactionFee={fee.getDefault()}
         amountToNaturalUnits={amount => formattedAmountToNaturalUnits(
           amount,
           apiMeta.decimalPlaces.toNumber()

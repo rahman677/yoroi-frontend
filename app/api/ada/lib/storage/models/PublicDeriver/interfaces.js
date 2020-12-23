@@ -4,10 +4,6 @@ import type {
   lf$Database,
 } from 'lovefield';
 
-import {
-  BigNumber
-} from 'bignumber.js';
-
 import { ConceptualWallet } from '../ConceptualWallet/index';
 import type { IConceptualWallet } from '../ConceptualWallet/interfaces';
 
@@ -22,7 +18,6 @@ import type {
   CanonicalAddressInsert,
   CanonicalAddressRow,
   KeyDerivationRow,
-  TokenRow,
 } from '../../database/primitives/tables';
 import type { PublicDeriverRow, LastSyncInfoRow, } from '../../database/walletTypes/core/tables';
 
@@ -393,7 +388,7 @@ export interface IScanAddresses {
 }
 
 export type IGetBalanceRequest = void;
-export type IGetBalanceResponse = BigNumber;
+export type IGetBalanceResponse = MultiToken;
 export type IGetBalanceFunc = (
   body: IGetBalanceRequest
 ) => Promise<IGetBalanceResponse>;

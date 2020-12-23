@@ -364,7 +364,8 @@ export async function rawGetTransactions(
                   if (rewardAmount == null) continue; // should never happen
                   implicitOutputSum.add({
                     identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
-                    amount: new BigNumber(rewardAmount.to_str())
+                    amount: new BigNumber(rewardAmount.to_str()),
+                    networkId: request.publicDeriver.getParent().getNetworkInfo().NetworkId,
                   });
                 }
               }
@@ -1526,6 +1527,7 @@ export async function updateTransactionBatch(
 function genByronIOGen(
   byronTx: RemoteTransaction,
   getIdOrThrow: string => number,
+  network: $ReadOnly<NetworkRow>,
   getAssetInfoOrThrow: string => $ReadOnly<TokenRow>,
   genNextTokenListId: void => number,
 ): (number => {|
@@ -1534,6 +1536,7 @@ function genByronIOGen(
   tokenList: Array<{|
     TokenList: TokenListInsert,
     identifier: string,
+    networkId: number,
   |}>,
 |}) {
   if (!(byronTx.type == null || byronTx.type === RemoteTransactionTypes.byron)) {
@@ -1555,6 +1558,7 @@ function genByronIOGen(
           TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Cardano).TokenId,
         },
         identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+        networkId: network.NetworkId,
       });
       utxoInputs.push({
         TransactionId: txRowId,
@@ -1577,6 +1581,7 @@ function genByronIOGen(
           TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Cardano).TokenId,
         },
         identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+        networkId: network.NetworkId,
       });
       utxoOutputs.push({
         TransactionId: txRowId,
@@ -1615,6 +1620,7 @@ function genShelleyIOGen(
   tokenList: Array<{|
     TokenList: TokenListInsert,
     identifier: string,
+    networkId: number,
   |}>,
 |}) {
   if (shelleyTx.type !== RemoteTransactionTypes.shelley) {
@@ -1637,6 +1643,7 @@ function genShelleyIOGen(
           TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Cardano).TokenId,
         },
         identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+        networkId: network.NetworkId,
       });
       utxoInputs.push({
         TransactionId: txRowId,
@@ -1658,6 +1665,7 @@ function genShelleyIOGen(
           TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Cardano).TokenId,
         },
         identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+        networkId: network.NetworkId,
       });
       accountingInputs.push({
         TransactionId: txRowId,
@@ -1687,6 +1695,7 @@ function genShelleyIOGen(
           TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Cardano).TokenId,
         },
         identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
+        networkId: network.NetworkId,
       });
 
       const outputType = addressToKind(output.address, 'bytes', network);
@@ -1877,6 +1886,7 @@ async function networkTxToDbTx(
         ioGen: genByronIOGen(
           networkTx,
           getIdOrThrow,
+          network,
           getAssetInfoOrThrow,
           genNextTokenListId
         ),

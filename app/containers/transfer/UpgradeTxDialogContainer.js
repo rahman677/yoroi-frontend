@@ -183,7 +183,6 @@ export default class UpgradeTxDialogContainer extends Component<Props> {
           .get(network.NetworkId) ?? (() => { throw new Error('No explorer for wallet network'); })()
         }
         transferTx={transferTx}
-        networkId={selected.getParent().getNetworkInfo().NetworkId}
         onSubmit={{
           trigger: async () => await this.submit({
             network,

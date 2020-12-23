@@ -155,16 +155,17 @@ export function sumInputsOutputs(
   const usedTokens = ios
     .reduce(
       (acc, next) => {
-        const entry = tokens.find(token => token.TokenList.ListId === next.TokenListId);
-        if (entry == null) return acc;
-        acc.push(entry);
+        for (const entry of tokens.filter(token => token.TokenList.ListId === next.TokenListId)) {
+          acc.push(entry);
+        }
         return acc;
       },
       []
     );
   return new MultiToken(usedTokens.map(token => ({
     identifier: token.Token.Identifier,
-    amount: new BigNumber(token.TokenList.Amount)
+    amount: new BigNumber(token.TokenList.Amount),
+    networkId: token.Token.NetworkId,
   })));
 }
 

@@ -484,7 +484,17 @@ function getChainInfo(full: CertificateForEpoch) {
   return { relatedAddresses, certificate, transaction, block };
 }
 
-const utxoBalance = new BigNumber(4);
+const multiToken = (networkId, amount) => {
+  const primaryAssetConstant = defaultAssets.filter(
+    asset => asset.NetworkId === networkId
+  )[0];
+  return new MultiToken([{
+    amount,
+    networkId,
+    identifier: primaryAssetConstant.Identifier,
+  }]);
+};
+
 const stakingKeyCases = {
   NeverDelegated: 1,
   JustDelegated: 2,
@@ -495,17 +505,16 @@ const stakingKeyCases = {
 function getStakingInfo(
   publicDeriver: *,
   stakingCase: $Values<typeof stakingKeyCases>,
-  canUnmangleAmount: BigNumber,
+  canUnmangleAmount: MultiToken,
 ): DelegationRequests {
-  const accountBalance = new BigNumber(3);
   const getDelegatedBalance: CachedRequest<GetDelegatedBalanceFunc> = new CachedRequest(
     _request => Promise.resolve({
       utxoPart: stakingCase === stakingKeyCases.NeverDelegated
-        ? new BigNumber(0)
-        : utxoBalance,
+        ? multiToken(publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(0))
+        : multiToken(publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(4)),
       accountPart: stakingCase === stakingKeyCases.NeverDelegated
-        ? new BigNumber(0)
-        : accountBalance,
+        ? multiToken(publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(0))
+        : multiToken(publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(3)),
     })
   );
   const currEpochCert = (() => {
@@ -581,8 +590,9 @@ function getStakingInfo(
   const mangledAmounts: CachedRequest<MangledAmountFunc> = new CachedRequest(
     _request => Promise.resolve({
       canUnmangle: canUnmangleAmount,
-      cannotUnmangle:
-        getDelegatedBalance.result?.utxoPart.minus(canUnmangleAmount) ?? new BigNumber(0),
+      cannotUnmangle: getDelegatedBalance.result?.utxoPart
+        .joinSubtractCopy(canUnmangleAmount)
+        ?? new MultiToken([]),
     })
   );
   mangledAmounts.execute((null: any));
@@ -633,14 +643,14 @@ export const Loading = (): Node => {
     const wallet = genJormungandrSigningWalletWithCache();
     const getDelegatedBalance: CachedRequest<GetDelegatedBalanceFunc> = new CachedRequest(
       _request => Promise.resolve({
-        utxoPart: new BigNumber(0),
-        accountPart: new BigNumber(0),
+        utxoPart: new MultiToken([]),
+        accountPart: new MultiToken([]),
       })
     );
     const mangledAmounts: CachedRequest<MangledAmountFunc> = new CachedRequest(
       _request => Promise.resolve({
-        canUnmangle: new BigNumber(0),
-        cannotUnmangle: new BigNumber(0),
+        canUnmangle: new MultiToken([]),
+        cannotUnmangle: new MultiToken([]),
       })
     );
     const getCurrentDelegation: CachedRequest<GetCurrentDelegationFunc> = new CachedRequest(
@@ -658,7 +668,7 @@ export const Loading = (): Node => {
       ])
     );
     const balance: CachedRequest<GetBalanceFunc> = new CachedRequest(_request => Promise.resolve(
-      utxoBalance,
+      multiToken(wallet.publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(4)),
     ));
     const calculationCases = {
       Pending: 0,
@@ -764,11 +774,11 @@ export const JormungandrDelegationCases = (): Node => {
     const computedDelegation = getStakingInfo(
       wallet.publicDeriver,
       getStakingKeyValue(),
-      new BigNumber(0),
+      new MultiToken([]),
     );
     wallet.getDelegation = (_publicDeriver) => computedDelegation;
     const balance: CachedRequest<GetBalanceFunc> = new CachedRequest(_request => Promise.resolve(
-      utxoBalance,
+      multiToken(wallet.publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(4)),
     ));
     balance.execute((null: any));
     const oldResults = wallet.getTransactions(wallet.publicDeriver);
@@ -819,11 +829,11 @@ export const AdaDelegationCases = (): Node => {
     const computedDelegation = getStakingInfo(
       wallet.publicDeriver,
       getStakingKeyValue(),
-      new BigNumber(0),
+      new MultiToken([]),
     );
     wallet.getDelegation = (_publicDeriver) => computedDelegation;
     const balance: CachedRequest<GetBalanceFunc> = new CachedRequest(_request => Promise.resolve(
-      utxoBalance,
+      multiToken(wallet.publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(4)),
     ));
     balance.execute((null: any));
     const oldResults = wallet.getTransactions(wallet.publicDeriver);
@@ -997,7 +1007,7 @@ export const Errors = (): Node => {
     const computedDelegation = getStakingInfo(
       wallet.publicDeriver,
       stakingKeyCases.LongAgoDelegation,
-      new BigNumber(0),
+      new MultiToken([]),
     );
 
     const errorCases = {
@@ -1024,7 +1034,7 @@ export const Errors = (): Node => {
         : undefined,
     });
     const balance: CachedRequest<GetBalanceFunc> = new CachedRequest(_request => Promise.resolve(
-      utxoBalance,
+      multiToken(wallet.publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(4)),
     ));
     balance.execute((null: any));
     const oldResults = wallet.getTransactions(wallet.publicDeriver);
@@ -1057,9 +1067,17 @@ export const Errors = (): Node => {
 
 // wallet we can reuse for multiple tests
 const genBaseJormungandrWallet = (
-  canUnmangleAmount: BigNumber,
+  canUnmangleAdaAmount: BigNumber,
 ) => {
   const wallet = genJormungandrSigningWalletWithCache();
+
+  const canUnmangleAmount = new MultiToken([{
+    amount: canUnmangleAdaAmount,
+    identifier: defaultAssets.filter(
+      asset => asset.NetworkId === wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+    )[0].Identifier,
+    networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
+  }])
   {
     const requests = wallet.getTimeCalcRequests(wallet.publicDeriver).requests;
     Object.keys(requests).map(key => requests[key]).forEach(request => request.execute());
@@ -1075,7 +1093,7 @@ const genBaseJormungandrWallet = (
   );
   wallet.getDelegation = (_publicDeriver) => computedDelegation;
   const balance: CachedRequest<GetBalanceFunc> = new CachedRequest(_request => Promise.resolve(
-    utxoBalance,
+    multiToken(wallet.publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(4)),
   ));
   balance.execute((null: any));
   const oldResults = wallet.getTransactions(wallet.publicDeriver);
@@ -1101,7 +1119,7 @@ const genBaseAdaWallet = () => {
   const computedDelegation = getStakingInfo(
     wallet.publicDeriver,
     stakingKeyCases.LongAgoDelegation,
-    new BigNumber(0),
+    new MultiToken([]),
   );
   wallet.getDelegation = (_publicDeriver) => computedDelegation;
   const computedAdaDelegation = getAdaStakingInfo(
@@ -1110,7 +1128,7 @@ const genBaseAdaWallet = () => {
   );
   wallet.getAdaDelegation = (_publicDeriver) => computedAdaDelegation;
   const balance: CachedRequest<GetBalanceFunc> = new CachedRequest(_request => Promise.resolve(
-    utxoBalance,
+    multiToken(wallet.publicDeriver.getParent().getNetworkInfo().NetworkId, new BigNumber(4)),
   ));
   balance.execute((null: any));
   const oldResults = wallet.getTransactions(wallet.publicDeriver);
@@ -1199,7 +1217,7 @@ export const UndelegateExecuting = (): Node => {
             error: undefined,
             result: {
               signTxRequest: genJormungandrUndelegateTx(wallet.publicDeriver),
-              totalAmountToDelegate: new BigNumber(0),
+              totalAmountToDelegate: new MultiToken([]),
             },
           },
         },
@@ -1234,7 +1252,7 @@ export const UndelegateError = (): Node => {
             error: new GenericApiError(),
             result: {
               signTxRequest: genJormungandrUndelegateTx(wallet.publicDeriver),
-              totalAmountToDelegate: new BigNumber(0),
+              totalAmountToDelegate: new MultiToken([]),
             },
           },
         },
@@ -1280,7 +1298,7 @@ export const UndelegateDialogShown = (): Node => {
             error: undefined,
             result: {
               signTxRequest: genJormungandrUndelegateTx(wallet.publicDeriver),
-              totalAmountToDelegate: new BigNumber(0),
+              totalAmountToDelegate: new MultiToken([]),
             },
           },
         },
@@ -1379,7 +1397,8 @@ export const MangledDashboardWarning = (): Node => {
         address: 'addr1sj045dheysyptfekdyqa508nuzdzmh82vkda9hcwqwysrja6d8d66f0cfsfk50hhuqjymr08drnm2kdf0r2337l6kl7mtm0z44vv4jexkqhz5w',
         values: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: mangleValues.cannotUnmangle
+          amount: mangleValues.cannotUnmangle,
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }]),
         type: CoreAddressTypes.JORMUNGANDR_GROUP,
       }];
@@ -1389,14 +1408,16 @@ export const MangledDashboardWarning = (): Node => {
         address: 'addr1sj045dheysyptfekdyqa508nuzdzmh82vkda9hcwqwysrja6d8d66f0cfsfk50hhuqjymr08drnm2kdf0r2337l6kl7mtm0z44vv4jexkqhz5w',
         values: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: mangleValues.cannotUnmangle
+          amount: mangleValues.cannotUnmangle,
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }]),
         type: CoreAddressTypes.JORMUNGANDR_GROUP,
       }, {
         address: 'addr1sj045dheysyptfekdyqa508nuzdzmh82vkda9hcwqwysrja6d8d66f0cfsfk50hhuqjymr08drnm2kdf0r2337l6kl7mtm0z44vv4jexkqhz5w',
         values: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: mangleValues.canUnmangle
+          amount: mangleValues.canUnmangle,
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }]),
         type: CoreAddressTypes.JORMUNGANDR_GROUP,
       }];
@@ -1406,7 +1427,8 @@ export const MangledDashboardWarning = (): Node => {
         address: 'addr1sj045dheysyptfekdyqa508nuzdzmh82vkda9hcwqwysrja6d8d66f0cfsfk50hhuqjymr08drnm2kdf0r2337l6kl7mtm0z44vv4jexkqhz5w',
         values: new MultiToken([{
           identifier: primaryAssetConstant.Identifier,
-          amount: mangleValues.canUnmangle
+          amount: mangleValues.canUnmangle,
+          networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
         }]),
         type: CoreAddressTypes.JORMUNGANDR_GROUP,
       }];
@@ -1494,7 +1516,9 @@ export const UnmangleDialogError = (): Node => {
 export const UnmangleDialogConfirm = (): Node => {
   const wallet = genBaseJormungandrWallet(new BigNumber(1000000));
   const lookup = walletLookup([wallet]);
-  const { tentativeTx } = genTentativeJormungandrTx();
+  const { tentativeTx } = genTentativeJormungandrTx(
+    wallet.publicDeriver.getParent().getNetworkInfo().NetworkId
+  );
   return wrapWallet(
     mockWalletProps({
       location: getRoute(wallet.publicDeriver.getPublicDeriverId()),

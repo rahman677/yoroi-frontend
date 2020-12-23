@@ -13,6 +13,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -25,17 +26,20 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "-1900000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
       "block": null,
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -48,11 +52,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "-200000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -60,6 +66,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -72,6 +79,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -84,6 +92,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -96,6 +105,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -108,6 +118,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -120,6 +131,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -132,6 +144,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -144,6 +157,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -197,6 +211,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -209,11 +224,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "2100000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -227,6 +244,7 @@ Object {
       },
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -239,6 +257,7 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": undefined,
         "subtract": [Function],
         "values": Array [],
       },
@@ -246,6 +265,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -258,6 +278,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -270,6 +291,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -282,6 +304,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -294,6 +317,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -306,6 +330,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -318,6 +343,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -330,6 +356,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -394,6 +421,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -406,11 +434,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "2100000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -424,6 +454,7 @@ Object {
       },
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -436,6 +467,7 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": undefined,
         "subtract": [Function],
         "values": Array [],
       },
@@ -443,6 +475,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -455,6 +488,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -467,6 +501,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -479,6 +514,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -491,6 +527,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -503,6 +540,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -515,6 +553,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -527,6 +566,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1175,6 +1215,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -1187,17 +1228,20 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "-1900000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
       "block": null,
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -1210,11 +1254,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "-200000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -1222,6 +1268,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1234,6 +1281,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1246,6 +1294,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1258,6 +1307,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1270,6 +1320,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1282,6 +1333,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1294,6 +1346,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1306,6 +1359,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1359,6 +1413,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -1371,11 +1426,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "2100000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -1389,6 +1446,7 @@ Object {
       },
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -1401,6 +1459,7 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": undefined,
         "subtract": [Function],
         "values": Array [],
       },
@@ -1408,6 +1467,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1420,6 +1480,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1432,6 +1493,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1444,6 +1506,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1456,6 +1519,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1468,6 +1532,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1480,6 +1545,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1492,6 +1558,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1556,6 +1623,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -1568,11 +1636,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "2100000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -1586,6 +1656,7 @@ Object {
       },
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -1598,6 +1669,7 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": undefined,
         "subtract": [Function],
         "values": Array [],
       },
@@ -1605,6 +1677,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1617,6 +1690,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1629,6 +1703,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1641,6 +1716,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1653,6 +1729,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1665,6 +1742,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1677,6 +1755,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -1689,6 +1768,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2613,6 +2693,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -2625,17 +2706,20 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "-1900000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
       "block": null,
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -2648,11 +2732,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "-200000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -2660,6 +2746,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2672,6 +2759,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2684,6 +2772,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2696,6 +2785,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2708,6 +2798,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2720,6 +2811,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2732,6 +2824,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2744,6 +2837,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2797,6 +2891,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -2809,11 +2904,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "2100000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -2827,6 +2924,7 @@ Object {
       },
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -2839,6 +2937,7 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": undefined,
         "subtract": [Function],
         "values": Array [],
       },
@@ -2846,6 +2945,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2858,6 +2958,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2870,6 +2971,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2882,6 +2984,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2894,6 +2997,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2906,6 +3010,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2918,6 +3023,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2930,6 +3036,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -2994,6 +3101,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -3006,11 +3114,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "2100000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -3024,6 +3134,7 @@ Object {
       },
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -3036,6 +3147,7 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": undefined,
         "subtract": [Function],
         "values": Array [],
       },
@@ -3043,6 +3155,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3055,6 +3168,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3067,6 +3181,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3079,6 +3194,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3091,6 +3207,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3103,6 +3220,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3115,6 +3233,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3127,6 +3246,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3775,6 +3895,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -3787,17 +3908,20 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "-1900000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
       "block": null,
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -3810,11 +3934,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "-200000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -3822,6 +3948,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3834,6 +3961,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3846,6 +3974,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3858,6 +3987,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3870,6 +4000,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3882,6 +4013,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3894,6 +4026,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3906,6 +4039,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -3959,6 +4093,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -3971,11 +4106,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "2100000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -3989,6 +4126,7 @@ Object {
       },
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -4001,6 +4139,7 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": undefined,
         "subtract": [Function],
         "values": Array [],
       },
@@ -4008,6 +4147,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4020,6 +4160,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4032,6 +4173,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4044,6 +4186,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4056,6 +4199,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4068,6 +4212,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4080,6 +4225,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4092,6 +4238,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4156,6 +4303,7 @@ Object {
       "accountingInputs": Array [],
       "accountingOutputs": Array [],
       "amount": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -4168,11 +4316,13 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": 100,
         "subtract": [Function],
         "values": Array [
           Object {
             "amount": "2100000",
             "identifier": "",
+            "networkId": 100,
           },
         ],
       },
@@ -4186,6 +4336,7 @@ Object {
       },
       "certificates": Array [],
       "fee": MultiToken {
+        "_setOrThrowNetworkId": [Function],
         "absCopy": [Function],
         "add": [Function],
         "asMap": [Function],
@@ -4198,6 +4349,7 @@ Object {
         "joinSubtractCopy": [Function],
         "joinSubtractMutable": [Function],
         "negatedCopy": [Function],
+        "networkId": undefined,
         "subtract": [Function],
         "values": Array [],
       },
@@ -4205,6 +4357,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4217,6 +4370,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4229,6 +4383,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4241,6 +4396,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4253,6 +4409,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4265,6 +4422,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4277,6 +4435,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {
@@ -4289,6 +4448,7 @@ Object {
         Object {
           "Token": Object {
             "Identifier": "",
+            "NetworkId": 100,
             "TokenId": 2,
           },
           "TokenList": Object {

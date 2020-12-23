@@ -217,7 +217,6 @@ export default class WalletReceivePage extends Component<Props> {
             filter: this.generated.stores.addresses.addressFilter,
           }}
           header={header}
-          networkId={publicDeriver.getParent().getNetworkInfo().NetworkId}
           selectedExplorer={selectedExplorerForNetwork}
           walletAddresses={applyAddressFilter({
             addressFilter: this.generated.stores.addresses.addressFilter,
@@ -490,7 +489,7 @@ export default class WalletReceivePage extends Component<Props> {
       if (requests == null) return false;
       const { result } = requests.mangledAmounts;
       if (result == null) return false;
-      return result.canUnmangle.gt(0);
+      return result.canUnmangle.getDefault().gt(0);
     })();
 
     return Object.freeze({

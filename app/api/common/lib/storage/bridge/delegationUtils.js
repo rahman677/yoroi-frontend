@@ -9,15 +9,16 @@ import type {
 } from '../../../../ada/lib/storage/models/PublicDeriver/interfaces';
 import type { CertificateForKey } from '../../../../ada/lib/storage/database/primitives/api/read';
 import type { ToRelativeSlotNumberFunc } from './timeUtils';
+import { MultiToken } from '../../MultiToken';
 
 export type GetDelegatedBalanceRequest = {|
   publicDeriver: PublicDeriver<> & IGetStakingKey,
-  rewardBalance: BigNumber,
+  rewardBalance: MultiToken,
   stakingAddress: string,
 |};
 export type GetDelegatedBalanceResponse = {|
-  utxoPart: BigNumber,
-  accountPart: BigNumber,
+  utxoPart: MultiToken,
+  accountPart: MultiToken,
 |};
 export type GetDelegatedBalanceFunc = (
   request: GetDelegatedBalanceRequest

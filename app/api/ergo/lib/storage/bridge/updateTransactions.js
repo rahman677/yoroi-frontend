@@ -1286,6 +1286,7 @@ function genErgoIOGen(
   tokenList: Array<{|
     TokenList: TokenListInsert,
     identifier: string,
+    networkId: number,
   |}>,
 |}) {
   return (txRowId) => {
@@ -1304,6 +1305,7 @@ function genErgoIOGen(
           TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Ergo).TokenId,
         },
         identifier: PRIMARY_ASSET_CONSTANTS.Ergo,
+        networkId,
       });
       // 2) Add tokens
       for (let tokenIndex = 0; tokenIndex < input.assets.length; tokenIndex++) {
@@ -1315,6 +1317,7 @@ function genErgoIOGen(
             TokenId: assetInfo.TokenId,
           },
           identifier: input.assets[tokenIndex].tokenId,
+          networkId,
         });
       }
 
@@ -1340,6 +1343,7 @@ function genErgoIOGen(
           TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Ergo).TokenId,
         },
         identifier: PRIMARY_ASSET_CONSTANTS.Ergo,
+        networkId,
       });
       // 2) Add tokens
       for (let tokenIndex = 0; tokenIndex < output.assets.length; tokenIndex++) {
@@ -1351,6 +1355,7 @@ function genErgoIOGen(
             TokenId: assetInfo.TokenId,
           },
           identifier: output.assets[tokenIndex].tokenId,
+          networkId,
         });
       }
 

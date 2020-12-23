@@ -454,10 +454,12 @@ export const TransferTxPage = (): Node => {
           recoveredBalance: new MultiToken([{
             identifier: primaryAssetConstant.Identifier,
             amount: new BigNumber(1),
+            networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
           }]),
           fee: new MultiToken([{
             identifier: primaryAssetConstant.Identifier,
             amount: new BigNumber(0.1),
+            networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
           }]),
           id: 'b65ae37bcc560e323ea8922de6573004299b6646e69ab9fac305f62f0c94c3ab',
           encodedTx: new Uint8Array([]),
@@ -557,10 +559,12 @@ export const WithdrawalTxPage = (): Node => {
           recoveredBalance: new MultiToken([{
             identifier: primaryAssetConstant.Identifier,
             amount: new BigNumber(1),
+            networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
           }]),
           fee: new MultiToken([{
             identifier: primaryAssetConstant.Identifier,
             amount: new BigNumber(0.1),
+            networkId: wallet.publicDeriver.getParent().getNetworkInfo().NetworkId,
           }]),
           id: 'b65ae37bcc560e323ea8922de6573004299b6646e69ab9fac305f62f0c94c3ab',
           encodedTx: new Uint8Array([]),

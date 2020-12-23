@@ -80,7 +80,8 @@ export default class NavBarContainer extends Component<Props> {
     let utxoTotal = new BigNumber(0);
     const walletBalances = wallets.map(wallet => stores.transactions
       .getTxRequests(wallet).requests.getBalanceRequest.result
-      ?.dividedBy(new BigNumber(10).pow(this.getMeta(wallet).decimalPlaces)));
+      ?.getDefault()
+      .dividedBy(new BigNumber(10).pow(this.getMeta(wallet).decimalPlaces)));
     for (const walletUtxoAmount of walletBalances) {
       if (walletUtxoAmount == null) {
         utxoTotal = null;
@@ -103,7 +104,8 @@ export default class NavBarContainer extends Component<Props> {
     const walletComponents = wallets.map(wallet => {
       const txRequests = this.generated.stores.transactions.getTxRequests(wallet);
       const balance = txRequests.requests.getBalanceRequest.result
-        ?.dividedBy(new BigNumber(10).pow(this.getMeta(wallet).decimalPlaces)) || null;
+        ?.getDefault()
+        .dividedBy(new BigNumber(10).pow(this.getMeta(wallet).decimalPlaces)) || null;
 
       const parent = wallet.getParent();
       const settingsCache = this.generated.stores.walletSettings
@@ -185,7 +187,8 @@ export default class NavBarContainer extends Component<Props> {
 
         const txRequests = this.generated.stores.transactions.getTxRequests(publicDeriver);
         const balance = txRequests.requests.getBalanceRequest.result
-          ?.dividedBy(new BigNumber(10).pow(apiMeta.decimalPlaces)) || null;
+          ?.getDefault()
+          .dividedBy(new BigNumber(10).pow(apiMeta.decimalPlaces)) || null;
 
         return (
           <NavWalletDetails
@@ -259,13 +262,14 @@ export default class NavBarContainer extends Component<Props> {
     );
     if (delegationRequest == null) return undefined;
 
-    console.log(delegationRequest);
     const balanceResult = delegationRequest.getDelegatedBalance.result;
     if (balanceResult == null) {
       return null;
     }
     const apiMeta = this.getMeta(publicDeriver);
-    return balanceResult.accountPart.dividedBy(new BigNumber(10).pow(apiMeta.decimalPlaces));
+    return balanceResult.accountPart
+      .getDefault()
+      .dividedBy(new BigNumber(10).pow(apiMeta.decimalPlaces));
   }
 
   @computed get generated(): {|

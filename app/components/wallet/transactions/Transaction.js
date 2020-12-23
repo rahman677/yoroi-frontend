@@ -199,7 +199,6 @@ type Props = {|
   +notification: ?Notification,
   +decimalPlaces: number, // TODO: this should be tied to individual values, not the currency itself
   +addressToDisplayString: string => string,
-  +networkId: number,
 |};
 
 type State = {|
@@ -277,7 +276,7 @@ export default class Transaction extends Component<Props, State> {
       return (<span>******</span>);
     }
 
-    const amount = request.amount.getDefault(this.props.networkId);
+    const amount = request.amount.getDefault();
 
     const { unitOfAccount } = this.props;
     if (unitOfAccount.priceInfo != null) {
@@ -317,7 +316,7 @@ export default class Transaction extends Component<Props, State> {
     if (this.props.shouldHideBalance) {
       return (<span>******</span>);
     }
-    const amount = request.amount.getDefault(this.props.networkId);
+    const amount = request.amount.getDefault();
 
     const { unitOfAccount } = this.props;
     if (unitOfAccount.priceInfo != null) {

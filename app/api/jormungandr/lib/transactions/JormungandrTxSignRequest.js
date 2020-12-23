@@ -9,24 +9,34 @@ import {
 } from '../../../common/lib/MultiToken';
 import { PRIMARY_ASSET_CONSTANTS } from '../../../ada/lib/storage/database/primitives/enums';
 
+type NetworkSettingSnapshot = {|
+  // there is no way given just an unsigned transaction body to know which network it belongs to
+  +NetworkId: number,
+|};
+
 export class JormungandrTxSignRequest implements ISignRequest<RustModule.WalletV3.InputOutput> {
 
   signRequest: BaseSignRequest<RustModule.WalletV3.InputOutput>;
+  networkSettingSnapshot: NetworkSettingSnapshot;
 
-  constructor(signRequest: BaseSignRequest<RustModule.WalletV3.InputOutput>) {
+  constructor(
+    signRequest: BaseSignRequest<RustModule.WalletV3.InputOutput>,
+    networkSettingSnapshot: NetworkSettingSnapshot,
+  ) {
     this.signRequest = signRequest;
+    this.networkSettingSnapshot = networkSettingSnapshot;
   }
 
   totalInput(): MultiToken {
-    return getTxInputTotal(this.signRequest.unsignedTx);
+    return getTxInputTotal(this.signRequest.unsignedTx, this.networkSettingSnapshot.NetworkId);
   }
 
   totalOutput(): MultiToken {
-    return getTxOutputTotal(this.signRequest.unsignedTx);
+    return getTxOutputTotal(this.signRequest.unsignedTx, this.networkSettingSnapshot.NetworkId);
   }
 
   fee(): MultiToken {
-    return getJormungandrTxFee(this.signRequest.unsignedTx);
+    return getJormungandrTxFee(this.signRequest.unsignedTx, this.networkSettingSnapshot.NetworkId);
   }
 
   uniqueSenderAddresses(): Array<string> {
@@ -66,6 +76,7 @@ export class JormungandrTxSignRequest implements ISignRequest<RustModule.WalletV
 
 export function getTxInputTotal(
   IOs: RustModule.WalletV3.InputOutput,
+  networkId: number,
 ): MultiToken {
   const values = new MultiToken([]);
 
@@ -74,7 +85,8 @@ export function getTxInputTotal(
     const input = inputs.get(i);
     values.add({
       identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
-      amount: new BigNumber(input.value().to_str())
+      amount: new BigNumber(input.value().to_str()),
+      networkId,
     });
   }
   return values;
@@ -82,6 +94,7 @@ export function getTxInputTotal(
 
 export function getTxOutputTotal(
   IOs: RustModule.WalletV3.InputOutput,
+  networkId: number,
 ): MultiToken {
   const values = new MultiToken([]);
 
@@ -90,7 +103,8 @@ export function getTxOutputTotal(
     const output = outputs.get(i);
     values.add({
       identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
-      amount: new BigNumber(output.value().to_str())
+      amount: new BigNumber(output.value().to_str()),
+      networkId,
     });
   }
   return values;
@@ -98,9 +112,10 @@ export function getTxOutputTotal(
 
 export function getJormungandrTxFee(
   IOs: RustModule.WalletV3.InputOutput,
+  networkId: number,
 ): MultiToken {
-  const out = getTxOutputTotal(IOs);
-  const ins = getTxInputTotal(IOs);
+  const out = getTxOutputTotal(IOs, networkId);
+  const ins = getTxInputTotal(IOs, networkId);
 
   return ins.joinSubtractMutable(out);
 }

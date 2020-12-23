@@ -37,7 +37,6 @@ import { ConceptualWallet } from '../ada/lib/storage/models/ConceptualWallet/ind
 import type { IHasLevels } from '../ada/lib/storage/models/ConceptualWallet/interfaces';
 import type { TransactionExportRow } from '../export';
 import ErgoTransaction from '../../domain/ErgoTransaction';
-import { getApiForNetwork } from '../common/utils';
 import {
   GenericApiError,
   WalletAlreadyRestoredError,
@@ -60,7 +59,6 @@ import type {
 } from '../common/lib/state-fetch/currencySpecificTypes';
 import {
   getAllAddressesForDisplay,
-  buildTokenMap,
 } from '../ada/lib/storage/bridge/traitUtils';
 import {
   HARD_DERIVATION_START,
@@ -266,7 +264,7 @@ export default class ErgoApi {
         return ErgoTransaction.fromAnnotatedTx({
           tx,
           addressLookupMap: fetchedTxs.addressLookupMap,
-          api: getApiForNetwork(request.publicDeriver.getParent().getNetworkInfo()),
+          network: request.publicDeriver.getParent().getNetworkInfo(),
         });
       });
       return {
@@ -294,7 +292,7 @@ export default class ErgoApi {
         return ErgoTransaction.fromAnnotatedTx({
           tx,
           addressLookupMap: fetchedTxs.addressLookupMap,
-          api: getApiForNetwork(request.publicDeriver.getParent().getNetworkInfo()),
+          network: request.publicDeriver.getParent().getNetworkInfo(),
         });
       });
       return mappedTransactions;
@@ -453,31 +451,8 @@ export default class ErgoApi {
     const utxos = await request.publicDeriver.getAllUtxos();
     const filteredUtxos = utxos.filter(utxo => request.filter(utxo));
 
-    const tokensForOutputs = await buildTokenMap({
-      publicDeriver: request.publicDeriver,
-      tokenListIds: filteredUtxos.map(
-        utxo => utxo.output.UtxoTransactionOutput.TokenListId
-      ),
-    });
-    const tokenMap = new Map<
-      number,
-      Array<{
-        amount: number,
-        tokenId: string,
-        ...
-      }>
-    >();
-    for (const output of tokensForOutputs) {
-      const list = tokenMap.get(output.TokenList.ListId) ?? [];
-      list.push({
-        amount: Number.parseInt(output.TokenList.Amount, 10),
-        tokenId: output.Token.Identifier,
-      });
-      tokenMap.set(output.TokenList.ListId, list);
-    }
     const addressedUtxo = asAddressedUtxo(
       filteredUtxos,
-      tokenMap,
     );
 
     const receivers = [{
@@ -521,6 +496,7 @@ export default class ErgoApi {
       const protocolParams = {
         FeeAddress: config.FeeAddress,
         MinimumBoxValue: config.MinimumBoxValue,
+        NetworkId: request.network.NetworkId,
       };
 
       let unsignedTxResponse;
@@ -592,6 +568,7 @@ export default class ErgoApi {
         networkSettingSnapshot: {
           FeeAddress: config.FeeAddress,
           ChainNetworkId: (Number.parseInt(config.ChainNetworkId, 10): any),
+          NetworkId: request.network.NetworkId,
         },
       });
     } catch (error) {

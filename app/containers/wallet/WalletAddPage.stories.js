@@ -523,6 +523,7 @@ const restoreWalletProps: {|
             asset => asset.NetworkId ===  request.selectedNetwork.NetworkId
           )[0].Identifier,
           amount: new BigNumber(1),
+          networkId: request.selectedNetwork.NetworkId,
         }]),
         id: 'b65ae37bcc560e323ea8922de6573004299b6646e69ab9fac305f62f0c94c3ab',
         receivers: ['Ae2tdPwUPEZ5PxKxoyZDgjsKgMWMpTRa4PH3sVgARSGBsWwNBH3qg7cMFsP'],
@@ -531,6 +532,7 @@ const restoreWalletProps: {|
             asset => asset.NetworkId ===  request.selectedNetwork.NetworkId
           )[0].Identifier,
           amount: new BigNumber(1000),
+          networkId: request.selectedNetwork.NetworkId,
         }]),
         senders: ['Ae2tdPwUPEZE9RAm3d3zuuh22YjqDxhR1JF6G93uJsRrk51QGHzRUzLvDjL'],
       },

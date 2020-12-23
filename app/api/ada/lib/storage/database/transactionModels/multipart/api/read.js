@@ -67,7 +67,8 @@ export class CardanoByronAssociateTxWithIOs {
         TokenList: token.TokenList,
         Token: {
           TokenId: token.Token.TokenId,
-          Identifier: token.Token.Identifier
+          Identifier: token.Token.Identifier,
+          NetworkId: token.Token.NetworkId,
         },
       })),
     }));
@@ -138,7 +139,8 @@ export class JormungandrAssociateTxWithIOs {
         TokenList: token.TokenList,
         Token: {
           TokenId: token.Token.TokenId,
-          Identifier: token.Token.Identifier
+          Identifier: token.Token.Identifier,
+          NetworkId: token.Token.NetworkId,
         },
       })),
     }));
@@ -208,7 +210,8 @@ export class CardanoShelleyAssociateTxWithIOs {
         TokenList: token.TokenList,
         Token: {
           TokenId: token.Token.TokenId,
-          Identifier: token.Token.Identifier
+          Identifier: token.Token.Identifier,
+          NetworkId: token.Token.NetworkId,
         },
       })),
     }));
@@ -262,7 +265,8 @@ export class ErgoAssociateTxWithIOs {
           TokenList: token.TokenList,
           Token: {
             TokenId: token.Token.TokenId,
-            Identifier: token.Token.Identifier
+            Identifier: token.Token.Identifier,
+            NetworkId: token.Token.NetworkId,
           },
         })),
       };

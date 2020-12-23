@@ -14,13 +14,27 @@ export type TokenEntry = {|
     */
   identifier: string,
   amount: BigNumber,
+  networkId: number,
 |};
 export class MultiToken {
   // this could be a map, but the # of elements is small enough the perf difference is trivial
   values: Array<TokenEntry>
+  networkId: void | number;
 
   constructor(values: Array<TokenEntry>) {
-    this.values = values;
+    this.values = [];
+    values.forEach(value => this.add(value));
+  }
+
+  _setOrThrowNetworkId: number => void = (networkId) => {
+    if (this.networkId == null) {
+      this.networkId = networkId;
+      return;
+    }
+    const ownNetworkId = this.networkId;
+    if (ownNetworkId !== networkId) {
+      throw new Error(`${nameof(MultiToken)} network mismatch ${ownNetworkId} - ${networkId}`);
+    }
   }
 
   get: string => BigNumber | void = (identifier) => {
@@ -28,6 +42,7 @@ export class MultiToken {
   }
 
   add: TokenEntry => MultiToken = (entry) => {
+    this._setOrThrowNetworkId(entry.networkId);
     const existingEntry = this.values.find(value => value.identifier === entry.identifier);
     if (existingEntry == null) {
       this.values.push(entry);
@@ -40,7 +55,8 @@ export class MultiToken {
   subtract: TokenEntry => MultiToken = (entry) => {
     return this.add({
       identifier: entry.identifier,
-      amount: entry.amount.negated()
+      amount: entry.amount.negated(),
+      networkId: entry.networkId,
     });
   }
 
@@ -78,8 +94,9 @@ export class MultiToken {
   }
 
   /// TODO: this assumes there is only one primary, which isn't always the case
-  getDefault: number => BigNumber = (networkId) => {
-    const token = defaultAssets.find(asset => asset.NetworkId === networkId);
+  getDefault: void => BigNumber = () => {
+    if (this.networkId == null) return new BigNumber(0);
+    const token = defaultAssets.find(asset => asset.NetworkId === this.networkId);
     if (token == null) return new BigNumber(0);
     const primary = this.values.find(value => value.identifier === token.Identifier);
     if (primary == null) return new BigNumber(0);

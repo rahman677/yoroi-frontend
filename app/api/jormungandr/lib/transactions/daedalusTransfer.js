@@ -39,8 +39,11 @@ export async function buildDaedalusTransferTx(payload: {|
   addressKeys: AddressKeyMap,
   senderUtxos: Array<RemoteUnspentOutput>,
   outputAddr: string,
-  genesisHash: string,
-  feeConfig: JormungandrFeeConfig,
+  protocolParams: {|
+    genesisHash: string,
+    feeConfig: JormungandrFeeConfig,
+    networkId: number,
+  |},
 |}): Promise<TransferTx> {
   try {
     const { addressKeys, senderUtxos, outputAddr } = payload;
@@ -52,7 +55,8 @@ export async function buildDaedalusTransferTx(payload: {|
         .reduce(
           (acc, amount) => acc.plus(amount),
           new BigNumber(0)
-        )
+        ),
+      networkId: payload.protocolParams.networkId,
     }]);
 
     // build tx
@@ -60,15 +64,18 @@ export async function buildDaedalusTransferTx(payload: {|
       outputAddr,
       senderUtxos,
       undefined,
-      payload.feeConfig
+      {
+        feeConfig: payload.protocolParams.feeConfig,
+        networkId: payload.protocolParams.networkId,
+      }
     );
-    const fee = getJormungandrTxFee(utxoResponse.IOs);
+    const fee = getJormungandrTxFee(utxoResponse.IOs, payload.protocolParams.networkId);
 
     // sign
     const signedTx = signDaedalusTransaction(
       utxoResponse,
       addressKeys,
-      payload.genesisHash,
+      payload.protocolParams.genesisHash,
     );
 
     const fragment = RustModule.WalletV3.Fragment.from_transaction(signedTx);

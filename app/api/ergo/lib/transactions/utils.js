@@ -57,15 +57,9 @@ export function convertErgoTransactionsToExportRows(
 
 export function asAddressedUtxo(
   utxos: IGetAllUtxosResponse,
-  tokenMap: Map<number, Array<{
-    amount: number,
-    tokenId: string,
-    ...
-  }>>,
 ): Array<ErgoAddressedUtxo> {
   return utxos.map(utxo => {
     const output = utxo.output.UtxoTransactionOutput;
-    const tokens = tokenMap.get(output.TokenListId);
     if (
       output.ErgoCreationHeight == null ||
       output.ErgoBoxId == null ||
@@ -74,21 +68,34 @@ export function asAddressedUtxo(
       throw new Error(`${nameof(asAddressedUtxo)} missing Ergo fields for Ergo UTXO`);
     }
     const { ErgoCreationHeight, ErgoBoxId, ErgoTree } = output;
-    if (tokens == null) throw new Error(`${nameof(asAddressedUtxo)} no tokens for output`);
-    const primaryAssetIndex = tokens.findIndex(
-      token => token.tokenId === PRIMARY_ASSET_CONSTANTS.Ergo
+
+    const tokenTypes = utxo.output.tokens.reduce(
+      (acc, next) => {
+        if (next.Token.Identifier === PRIMARY_ASSET_CONSTANTS.Ergo) {
+          acc.amount = acc.amount.plus(next.TokenList.Amount);
+        } else {
+          acc.tokens.push({
+            amount: Number(next.TokenList.Amount),
+            tokenId: next.Token.Identifier,
+          });
+        }
+        return acc;
+      },
+      {
+        amount: new BigNumber(0),
+        tokens: [],
+      }
     );
-    // get the primary asset and remove it from the token list
-    const primaryAsset = tokens.splice(primaryAssetIndex, 1)[0];
+
     return {
-      amount: primaryAsset.amount.toString(),
+      amount: tokenTypes.amount.toString(),
       receiver: utxo.address,
       tx_hash: utxo.output.Transaction.Hash,
       tx_index: utxo.output.UtxoTransactionOutput.OutputIndex,
       addressing: utxo.addressing,
       creationHeight: ErgoCreationHeight,
       boxId: ErgoBoxId,
-      assets: tokens,
+      assets: tokenTypes.tokens,
       additionalRegisters: undefined, // TODO
       ergoTree: ErgoTree,
     };

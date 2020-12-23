@@ -53,6 +53,7 @@ export function sendAllUnsignedTx(
     minimumUtxoVal: RustModule.WalletV4.BigNum,
     poolDeposit: RustModule.WalletV4.BigNum,
     keyDeposit: RustModule.WalletV4.BigNum,
+    networkId: number,
   |},
 ): V4UnsignedTxAddressedUtxoResponse {
   const addressingMap = new Map<RemoteUnspentOutput, CardanoAddressedUtxo>();
@@ -132,6 +133,7 @@ export function sendAllUnsignedTxFromUtxo(
     minimumUtxoVal: RustModule.WalletV4.BigNum,
     poolDeposit: RustModule.WalletV4.BigNum,
     keyDeposit: RustModule.WalletV4.BigNum,
+    networkId: number,
   |},
 ): V4UnsignedTxUtxoResponse {
   const totalBalance = allUtxos
@@ -181,7 +183,8 @@ export function sendAllUnsignedTxFromUtxo(
     const { addressing } = receiver;
     const output = new MultiToken([{
       identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
-      amount: new BigNumber(txBuilder.get_explicit_output().to_str())
+      amount: new BigNumber(txBuilder.get_explicit_output().to_str()),
+      networkId: protocolParams.networkId,
     }]);
     return [{
       addressing,
@@ -210,6 +213,7 @@ export function newAdaUnsignedTx(
     minimumUtxoVal: RustModule.WalletV4.BigNum,
     poolDeposit: RustModule.WalletV4.BigNum,
     keyDeposit: RustModule.WalletV4.BigNum,
+    networkId: number,
   |},
   certificates: $ReadOnlyArray<RustModule.WalletV4.Certificate>,
   withdrawals: $ReadOnlyArray<{|
@@ -297,6 +301,7 @@ export function newAdaUnsignedTxFromUtxo(
     minimumUtxoVal: RustModule.WalletV4.BigNum,
     poolDeposit: RustModule.WalletV4.BigNum,
     keyDeposit: RustModule.WalletV4.BigNum,
+    networkId: number,
   |},
   certificates: $ReadOnlyArray<RustModule.WalletV4.Certificate>,
   withdrawals: $ReadOnlyArray<{|
@@ -465,7 +470,8 @@ export function newAdaUnsignedTxFromUtxo(
     }
     const output = new MultiToken([{
       identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
-      amount: new BigNumber(txBuilder.get_explicit_output().checked_sub(oldOutput).to_str())
+      amount: new BigNumber(txBuilder.get_explicit_output().checked_sub(oldOutput).to_str()),
+      networkId: protocolParams.networkId,
     }]);
     return changeWasAdded
       ? [{

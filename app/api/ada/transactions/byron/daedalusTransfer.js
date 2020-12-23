@@ -46,7 +46,8 @@ export async function buildDaedalusTransferTx(payload: {|
     linearFee: RustModule.WalletV4.LinearFee,
     minimumUtxoVal: RustModule.WalletV4.BigNum,
     poolDeposit: RustModule.WalletV4.BigNum,
-  |}
+    networkId: number,
+  |},
 |}): Promise<TransferTx> {
   try {
     const { addressKeys, senderUtxos, } = payload;
@@ -58,7 +59,8 @@ export async function buildDaedalusTransferTx(payload: {|
         .reduce(
           (acc, amount) => acc.plus(amount),
           new BigNumber(0)
-        )
+        ),
+      networkId: payload.protocolParams.networkId,
     }]);
 
     // build tx
@@ -69,10 +71,11 @@ export async function buildDaedalusTransferTx(payload: {|
       payload.protocolParams,
     );
     const fee = new MultiToken([{
-      identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+      identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
       amount: new BigNumber(
         unsignedTxResponse.txBuilder.get_fee_if_set()?.to_str() || '0'
-      ).plus(unsignedTxResponse.txBuilder.get_deposit().to_str())
+      ).plus(unsignedTxResponse.txBuilder.get_deposit().to_str()),
+      networkId: payload.protocolParams.networkId,
     }]);
 
     // sign

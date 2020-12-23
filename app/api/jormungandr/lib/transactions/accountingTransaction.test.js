@@ -15,20 +15,30 @@ import {
 import { RustModule } from '../../../ada/lib/cardanoCrypto/rustLoader';
 import BigNumber from 'bignumber.js';
 import { PRIMARY_ASSET_CONSTANTS } from '../../../ada/lib/storage/database/primitives/enums';
+import type { JormungandrFeeConfig } from '../../../ada/lib/storage/database/primitives/tables';
+import { networks } from '../../../ada/lib/storage/database/prepackaged/networks';
 
 beforeAll(async () => {
   await RustModule.load();
 });
 
-const linearFeeConfig = {
-  constant: '155381',
-  coefficient: '1',
-  certificate: '4',
-  per_certificate_fees: {
-    certificate_pool_registration: '5',
-    certificate_stake_delegation: '6',
-  },
-};
+function getProtocolParams(): {|
+  feeConfig: JormungandrFeeConfig,
+  networkId: number,
+|} {
+  return {
+    feeConfig: {
+      constant: '155381',
+      coefficient: '1',
+      certificate: '4',
+      per_certificate_fees: {
+        certificate_pool_registration: '5',
+        certificate_stake_delegation: '6',
+      },
+    },
+    networkId: networks.JormungandrMainnet.NetworkId,
+  };
+}
 
 describe('Create unsigned TX for account', () => {
   it('Should create a valid transaction', async () => {
@@ -45,10 +55,10 @@ describe('Create unsigned TX for account', () => {
         amount: new BigNumber(2000000)
       },
       new BigNumber(5000000),
-      linearFeeConfig,
+      getProtocolParams().feeConfig,
     );
-    const inputSum = getTxInputTotal(unsignedTxResponse);
-    const outputSum = getTxOutputTotal(unsignedTxResponse);
+    const inputSum = getTxInputTotal(unsignedTxResponse, getProtocolParams().networkId);
+    const outputSum = getTxOutputTotal(unsignedTxResponse, getProtocolParams().networkId);
     expect(inputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('2155383');
     expect(outputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('2000000');
     expect(inputSum.joinSubtractCopy(outputSum).get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('155383');
@@ -86,7 +96,7 @@ describe('Create unsigned TX for account', () => {
         amount: new BigNumber(2000000),
       },
       new BigNumber(2000000),
-      linearFeeConfig,
+      getProtocolParams().feeConfig,
     )).toThrow(NotEnoughMoneyToSendError);
   });
 
@@ -104,7 +114,7 @@ describe('Create unsigned TX for account', () => {
         amount: new BigNumber(2000000),
       },
       new BigNumber(1000000),
-      linearFeeConfig,
+      getProtocolParams().feeConfig,
     )).toThrow(NotEnoughMoneyToSendError);
   });
 });

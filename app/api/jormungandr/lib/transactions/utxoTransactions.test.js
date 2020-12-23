@@ -40,16 +40,26 @@ import {
   getTxOutputTotal,
 } from './JormungandrTxSignRequest';
 import { PRIMARY_ASSET_CONSTANTS } from '../../../ada/lib/storage/database/primitives/enums';
+import type { JormungandrFeeConfig } from '../../../ada/lib/storage/database/primitives/tables';
+import { networks } from '../../../ada/lib/storage/database/prepackaged/networks';
 
-const linearFeeConfig = {
-  constant: '155381',
-  coefficient: '1',
-  certificate: '4',
-  per_certificate_fees: {
-    certificate_pool_registration: '5',
-    certificate_stake_delegation: '6',
-  },
-};
+function getProtocolParams(): {|
+  feeConfig: JormungandrFeeConfig,
+  networkId: number,
+|} {
+  return {
+    feeConfig: {
+      constant: '155381',
+      coefficient: '1',
+      certificate: '4',
+      per_certificate_fees: {
+        certificate_pool_registration: '5',
+        certificate_stake_delegation: '6',
+      },
+    },
+    networkId: networks.JormungandrMainnet.NetworkId,
+  };
+}
 
 const keys = [
   {
@@ -149,11 +159,11 @@ describe('Create unsigned TX from UTXO', () => {
       [],
       utxos,
       undefined,
-      linearFeeConfig,
+      getProtocolParams(),
     );
     expect(unsignedTxResponse.senderUtxos).toEqual(utxos);
-    const inputSum = getTxInputTotal(unsignedTxResponse.IOs);
-    const outputSum = getTxOutputTotal(unsignedTxResponse.IOs);
+    const inputSum = getTxInputTotal(unsignedTxResponse.IOs, getProtocolParams().networkId);
+    const outputSum = getTxOutputTotal(unsignedTxResponse.IOs, getProtocolParams().networkId);
     expect(inputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('1000001');
     expect(outputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('5001');
     expect(inputSum.joinSubtractCopy(outputSum).get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('995000');
@@ -169,7 +179,7 @@ describe('Create unsigned TX from UTXO', () => {
       [],
       utxos,
       undefined,
-      linearFeeConfig
+      getProtocolParams()
     )).toThrow(NotEnoughMoneyToSendError);
   });
 
@@ -182,7 +192,7 @@ describe('Create unsigned TX from UTXO', () => {
       [],
       [],
       undefined,
-      linearFeeConfig,
+      getProtocolParams(),
     )).toThrow(NotEnoughMoneyToSendError);
   });
 
@@ -196,7 +206,7 @@ describe('Create unsigned TX from UTXO', () => {
       [],
       utxos,
       undefined,
-      linearFeeConfig,
+      getProtocolParams(),
     )).toThrow(NotEnoughMoneyToSendError);
   });
 
@@ -210,13 +220,13 @@ describe('Create unsigned TX from UTXO', () => {
       [sampleAdaAddresses[0]],
       utxos,
       undefined,
-      linearFeeConfig
+      getProtocolParams()
     );
     // input selection will only take 2 of the 3 inputs
     // it takes 2 inputs because input selection algorithm
     expect(unsignedTxResponse.senderUtxos).toEqual([utxos[0], utxos[1]]);
-    const inputSum = getTxInputTotal(unsignedTxResponse.IOs);
-    const outputSum = getTxOutputTotal(unsignedTxResponse.IOs);
+    const inputSum = getTxInputTotal(unsignedTxResponse.IOs, getProtocolParams().networkId);
+    const outputSum = getTxOutputTotal(unsignedTxResponse.IOs, getProtocolParams().networkId);
     expect(inputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('1007002');
     expect(outputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('851617');
     expect(inputSum.joinSubtractCopy(outputSum).get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('155385');
@@ -233,11 +243,11 @@ describe('Create unsigned TX from addressed UTXOs', () => {
       [],
       [addressedUtxos[0], addressedUtxos[1]],
       undefined,
-      linearFeeConfig,
+      getProtocolParams(),
     );
     expect(unsignedTxResponse.senderUtxos).toEqual([addressedUtxos[0], addressedUtxos[1]]);
-    const inputSum = getTxInputTotal(unsignedTxResponse.IOs);
-    const outputSum = getTxOutputTotal(unsignedTxResponse.IOs);
+    const inputSum = getTxInputTotal(unsignedTxResponse.IOs, getProtocolParams().networkId);
+    const outputSum = getTxOutputTotal(unsignedTxResponse.IOs, getProtocolParams().networkId);
     expect(inputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('1007002');
     expect(outputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('5001');
     expect(inputSum.joinSubtractCopy(outputSum).get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('1002001');
@@ -254,7 +264,7 @@ describe('Create signed transactions with legacy witness', () => {
       [],
       [addressedUtxos[0], addressedUtxos[1]],
       undefined,
-      linearFeeConfig,
+      getProtocolParams(),
     );
     const accountPrivateKey = RustModule.WalletV3.Bip32PrivateKey.from_bytes(
       Buffer.from(
@@ -293,7 +303,7 @@ describe('Create signed transactions', () => {
       [],
       [addressedUtxos[0], addressedUtxos[1]],
       undefined,
-      linearFeeConfig,
+      getProtocolParams(),
     );
 
     const accountPrivateKey = RustModule.WalletV3.Bip32PrivateKey.from_bytes(
@@ -354,7 +364,7 @@ describe('Create signed transactions', () => {
         }
       ],
       undefined,
-      linearFeeConfig,
+      getProtocolParams(),
     );
 
     const accountPrivateKey = RustModule.WalletV3.Bip32PrivateKey.from_bytes(
@@ -430,7 +440,7 @@ describe('Create signed transactions', () => {
         },
       }],
       certificate,
-      linearFeeConfig,
+      getProtocolParams(),
     );
 
     const fragment = signTransaction(
@@ -511,7 +521,7 @@ describe('Create signed transactions', () => {
         },
       }],
       certificate,
-      linearFeeConfig,
+      getProtocolParams(),
     );
 
     const fragment = signTransaction(
@@ -558,12 +568,12 @@ describe('Create sendAll unsigned TX from UTXO', () => {
       keys[0].bechAddress,
       utxos,
       undefined,
-      linearFeeConfig
+      getProtocolParams()
     );
 
     expect(sendAllResponse.senderUtxos).toEqual([utxos[0], utxos[1]]);
-    const inputSum = getTxInputTotal(sendAllResponse.IOs);
-    const outputSum = getTxOutputTotal(sendAllResponse.IOs);
+    const inputSum = getTxInputTotal(sendAllResponse.IOs, getProtocolParams().networkId);
+    const outputSum = getTxOutputTotal(sendAllResponse.IOs, getProtocolParams().networkId);
     expect(inputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('11000002');
     expect(outputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('10844618');
     expect(inputSum.joinSubtractCopy(outputSum).get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('155384');
@@ -574,7 +584,7 @@ describe('Create sendAll unsigned TX from UTXO', () => {
       keys[0].bechAddress,
       [],
       undefined,
-      linearFeeConfig,
+      getProtocolParams(),
     )).toThrow(NotEnoughMoneyToSendError);
   });
 
@@ -584,7 +594,7 @@ describe('Create sendAll unsigned TX from UTXO', () => {
       keys[0].bechAddress,
       utxos,
       undefined,
-      linearFeeConfig
+      getProtocolParams()
     )).toThrow(NotEnoughMoneyToSendError);
   });
 
@@ -612,10 +622,10 @@ describe('Create sendAll unsigned TX from UTXO', () => {
         amount: '1',
       }],
       undefined,
-      linearFeeConfig,
+      getProtocolParams(),
     );
-    const inputSum = getTxInputTotal(unsignedTxResponse.IOs);
-    const outputSum = getTxOutputTotal(unsignedTxResponse.IOs);
+    const inputSum = getTxInputTotal(unsignedTxResponse.IOs, getProtocolParams().networkId);
+    const outputSum = getTxOutputTotal(unsignedTxResponse.IOs, getProtocolParams().networkId);
     expect(inputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('1000001');
     expect(outputSum.get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('844617');
     expect(inputSum.joinSubtractCopy(outputSum).get(PRIMARY_ASSET_CONSTANTS.Jormungandr)?.toString()).toEqual('155384');

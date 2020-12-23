@@ -68,7 +68,6 @@ type Props = {|
   +addressToDisplayString: string => string,
   +addressLookup: ReturnType<typeof genAddressLookup>,
   +header?: Node,
-  +networkId: number,
 |};
 
 /** Show user what the transfer would do to get final confirmation */
@@ -291,13 +290,13 @@ export default class TransferSummaryPage extends Component<Props> {
     const { transferTx, isSubmitting, error, unitOfAccountSetting, coinPrice, } = this.props;
 
     const recoveredBalance = this.props.formattedWalletAmount(
-      transferTx.recoveredBalance.getDefault(this.props.networkId)
+      transferTx.recoveredBalance.getDefault()
     );
     const transactionFee = this.props.formattedWalletAmount(
-      transferTx.fee.getDefault(this.props.networkId)
+      transferTx.fee.getDefault()
     );
     const finalBalance = this.props.formattedWalletAmount(
-      this.getTotalBalance().getDefault(this.props.networkId)
+      this.getTotalBalance().getDefault()
     );
 
     return this.wrapInDialog(
@@ -316,7 +315,7 @@ export default class TransferSummaryPage extends Component<Props> {
                 <div className={styles.amount}>
                   {coinPrice != null
                     ? calculateAndFormatValue(
-                      transferTx.recoveredBalance.getDefault(this.props.networkId),
+                      transferTx.recoveredBalance.getDefault(),
                       coinPrice
                     )
                     : '-'
@@ -349,7 +348,7 @@ export default class TransferSummaryPage extends Component<Props> {
                 <div className={styles.fees}>
                   {'+' + (coinPrice != null
                     ? calculateAndFormatValue(
-                      transferTx.fee.getDefault(this.props.networkId),
+                      transferTx.fee.getDefault(),
                       coinPrice
                     )
                     : '-'
@@ -385,7 +384,7 @@ export default class TransferSummaryPage extends Component<Props> {
                   ? calculateAndFormatValue(
                     transferTx.recoveredBalance
                       .joinSubtractCopy(transferTx.fee)
-                      .getDefault(this.props.networkId),
+                      .getDefault(),
                     coinPrice
                   )
                   : '-'

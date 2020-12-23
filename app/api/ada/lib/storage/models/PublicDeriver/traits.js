@@ -8,6 +8,7 @@ import type {
 import {
   Mixin,
 } from 'mixwith';
+import BigNumber from 'bignumber.js';
 
 import type {
   Address,
@@ -1709,18 +1710,18 @@ const ScanErgoAccountUtxoMixin = (
     const key = BIP32PublicKey.fromBuffer(Buffer.from(body.accountPublicKey, 'hex'));
 
     const network = this.getParent().getNetworkInfo();
-    const networkId = ((
+    const chainNetworkId = ((
       Number.parseInt(network.BaseConfig[0].ChainNetworkId, 10): any
     ): $Values<typeof RustModule.SigmaRust.NetworkPrefix>);
 
     return await scanBip44Account({
       generateInternalAddresses: ergoGenAddressBatchFunc(
         deriveKey(key, ChainDerivations.INTERNAL).key,
-        networkId
+        chainNetworkId
       ),
       generateExternalAddresses: ergoGenAddressBatchFunc(
         deriveKey(key, ChainDerivations.EXTERNAL).key,
-        networkId
+        chainNetworkId
       ),
       lastUsedInternal: body.lastUsedInternal,
       lastUsedExternal: body.lastUsedExternal,

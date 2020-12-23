@@ -191,7 +191,6 @@ export default class DaedalusTransferPage extends Component<InjectedOrGenerated<
               apiMeta.meta.decimalPlaces.toNumber()
             )}
             transferTx={daedalusTransfer.transferTx}
-            networkId={publicDeriver.getParent().getNetworkInfo().NetworkId}
             selectedExplorer={this.generated.stores.explorers.selectedExplorer
               .get(publicDeriver.getParent().getNetworkInfo().NetworkId) ?? (() => { throw new Error('No explorer for wallet network'); })()
             }

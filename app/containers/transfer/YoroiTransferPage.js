@@ -289,7 +289,6 @@ export default class YoroiTransferPage extends Component<InjectedOrGenerated<Gen
               apiMeta.meta.decimalPlaces.toNumber(),
             )}
             transferTx={transferTx}
-            networkId={publicDeriver.getParent().getNetworkInfo().NetworkId}
             selectedExplorer={this.generated.stores.explorers.selectedExplorer
               .get(publicDeriver.getParent().getNetworkInfo().NetworkId) ?? (() => { throw new Error('No explorer for wallet network'); })()
             }

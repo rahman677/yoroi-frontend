@@ -142,7 +142,6 @@ export default class TransactionsStore extends Store {
       txRequests.lastSyncInfo.Height,
       assuranceMode,
       getUnitOfAccount,
-      publicDeriver.getParent().getNetworkInfo().NetworkId,
     );
   }
 

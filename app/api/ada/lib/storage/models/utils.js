@@ -400,6 +400,7 @@ export function getBalanceForUtxos(
       tokens.add({
         identifier: token.Token.Identifier,
         amount: new BigNumber(token.TokenList.Amount),
+        networkId: token.Token.NetworkId,
       });
     }
   }

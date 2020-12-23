@@ -4,7 +4,6 @@ import BigNumber from 'bignumber.js';
 import { ISignRequest } from '../../../common/lib/transactions/ISignRequest';
 import type { BaseSignRequest } from '../types';
 import { RustModule } from '../../lib/cardanoCrypto/rustLoader';
-import { getAdaCurrencyMeta } from '../../currencyInfo';
 import { toHexOrBase58 } from '../../lib/storage/bridge/utils';
 import {
   MultiToken,
@@ -23,6 +22,7 @@ import { PRIMARY_ASSET_CONSTANTS } from '../../lib/storage/database/primitives/e
 */
 type NetworkSettingSnapshot = {|
   // there is no way given just a transaction body to 100% know which network it belongs to
+  +NetworkId: number,
   +ChainNetworkId: number,
   +PoolDeposit: BigNumber,
   +KeyDeposit: BigNumber,
@@ -73,8 +73,9 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
       amount: new BigNumber(
         this.signRequest.unsignedTx.get_implicit_input().checked_add(
           this.signRequest.unsignedTx.get_explicit_input()
-        ).to_str()
-      )
+        ).to_str(),
+      ),
+      networkId: this.networkSettingSnapshot.NetworkId,
     });
     this.signRequest.changeAddr.forEach(change => values.joinSubtractMutable(change.values));
 
@@ -85,7 +86,8 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
     const values = new MultiToken([]);
     values.add({
       identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
-      amount: new BigNumber(this.signRequest.unsignedTx.get_explicit_output().to_str())
+      amount: new BigNumber(this.signRequest.unsignedTx.get_explicit_output().to_str()),
+      networkId: this.networkSettingSnapshot.NetworkId,
     });
 
     return values;
@@ -97,7 +99,8 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
       identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
       amount: new BigNumber(
         this.signRequest.unsignedTx.get_fee_if_set()?.to_str() || '0'
-      ).plus(this.signRequest.unsignedTx.get_deposit().to_str())
+      ).plus(this.signRequest.unsignedTx.get_deposit().to_str()),
+      networkId: this.networkSettingSnapshot.NetworkId,
     });
 
     return values;
@@ -119,7 +122,8 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
 
       const amount = new MultiToken([{
         identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
-        amount: new BigNumber(withdrawalAmount)
+        amount: new BigNumber(withdrawalAmount),
+        networkId: this.networkSettingSnapshot.NetworkId,
       }]);
       result.push({
         address: Buffer.from(rewardAddress.to_address().to_bytes()).toString('hex'),
@@ -151,6 +155,7 @@ implements ISignRequest<RustModule.WalletV4.TransactionBuilder> {
         refund: new MultiToken([{
           identifier: PRIMARY_ASSET_CONSTANTS.Cardano,
           amount: this.networkSettingSnapshot.KeyDeposit,
+          networkId: this.networkSettingSnapshot.NetworkId,
         }]),
       });
     }

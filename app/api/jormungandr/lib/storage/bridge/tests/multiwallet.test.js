@@ -253,12 +253,12 @@ async function checkPub1HasTx(
 
   {
     const response = await basePubDeriver.getUtxoBalance();
-    expect(response.getDefault(basePubDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2100000'));
+    expect(response.getDefault()).toEqual(new BigNumber('2100000'));
   }
 
   {
     const response = await basePubDeriver.getUtxoBalance();
-    expect(response.getDefault(basePubDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2100000'));
+    expect(response.getDefault()).toEqual(new BigNumber('2100000'));
   }
 
   {
@@ -287,12 +287,12 @@ async function checkPub2IsEmpty(
 
   {
     const response = await basePubDeriver.getUtxoBalance();
-    expect(response.getDefault(publicDeriver2.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('0'));
+    expect(response.getDefault()).toEqual(new BigNumber('0'));
   }
 
   {
     const response = await basePubDeriver.getUtxoBalance();
-    expect(response.getDefault(publicDeriver2.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('0'));
+    expect(response.getDefault()).toEqual(new BigNumber('0'));
   }
 
   {
@@ -388,12 +388,12 @@ async function checkPub2HasTx(
 
   {
     const response = await basePubDeriver.getUtxoBalance();
-    expect(response.getDefault(basePubDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2700000'));
+    expect(response.getDefault()).toEqual(new BigNumber('2700000'));
   }
 
   {
     const response = await basePubDeriver.getUtxoBalance();
-    expect(response.getDefault(basePubDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2700000'));
+    expect(response.getDefault()).toEqual(new BigNumber('2700000'));
   }
 
   {

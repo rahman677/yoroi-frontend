@@ -59,7 +59,6 @@ type Props = {|
   +isLoadingTransactions: boolean,
   +openExportTxToFileDialog: void => void,
   +unitOfAccountSetting: UnitOfAccountSettingType,
-  +networkId: number,
 |};
 
 @observer
@@ -77,7 +76,7 @@ export default class WalletSummary extends Component<Props> {
     if (request.shouldHideBalance) {
       balanceDisplay = (<span>******</span>);
     } else {
-      const amount = request.amount.getDefault(this.props.networkId);
+      const amount = request.amount.getDefault();
       const [beforeDecimalRewards, afterDecimalRewards] = splitAmount(
         amount,
         this.props.meta.decimalPlaces,

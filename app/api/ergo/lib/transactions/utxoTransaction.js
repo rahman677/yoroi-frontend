@@ -47,6 +47,7 @@ export function sendAllUnsignedTx(request: {|
   protocolParams: {|
     FeeAddress: string,
     MinimumBoxValue: string,
+    NetworkId: number,
   |},
 |}): ErgoUnsignedTxAddressedUtxoResponse {
   const addressingMap = new Map<RemoteUnspentOutput, ErgoAddressedUtxo>();
@@ -92,6 +93,7 @@ function changeToModel(
   boxList: RustModule.SigmaRust.ErgoBoxAssetsDataList,
   addressing: $PropertyType<Addressing, 'addressing'>,
   address: string,
+  networkId: number,
 ): Array<{| ...Address, ...Value, ...Addressing |}> {
   const changeBoxes = [];
   for (let i = 0; i < boxList.len(); i++) {
@@ -99,13 +101,16 @@ function changeToModel(
     const boxAsset = new MultiToken([]);
     boxAsset.add({
       identifier: PRIMARY_ASSET_CONSTANTS.Ergo,
-      amount: new BigNumber(asset.value().as_i64().to_str())
+      amount: new BigNumber(asset.value().as_i64().to_str()),
+      networkId,
     });
-    for (let j = 0; j < asset.tokens.len(); j++) {
-      const token = asset.tokens.get(j);
+    const assets = asset.tokens();
+    for (let j = 0; j < assets.len(); j++) {
+      const token = assets.get(j);
       boxAsset.add({
         identifier: token.id().to_str(),
-        amount: new BigNumber(token.amount().as_i64().to_str())
+        amount: new BigNumber(token.amount().as_i64().to_str()),
+        networkId,
       });
     }
     changeBoxes.push({
@@ -125,6 +130,7 @@ export function sendAllUnsignedTxFromUtxo(request: {|
   protocolParams: {|
     FeeAddress: string,
     MinimumBoxValue: string,
+    NetworkId: number,
   |},
 |}): ErgoUnsignedTxUtxoResponse {
   if (request.utxos.length === 0) {
@@ -212,7 +218,11 @@ export function sendAllUnsignedTxFromUtxo(request: {|
   const changeAddr = (() => {
     if (request.receiver.addressing == null) return [];
     const { addressing } = request.receiver;
-    return changeToModel(changeWasm, addressing, request.receiver.address);
+    return changeToModel(
+      changeWasm, addressing,
+      request.receiver.address,
+      request.protocolParams.NetworkId
+    );
   })();
 
   return {
@@ -236,6 +246,7 @@ export function newErgoUnsignedTx(request: {|
   protocolParams: {|
     FeeAddress: string,
     MinimumBoxValue: string,
+    NetworkId: number,
   |},
 |}): ErgoUnsignedTxAddressedUtxoResponse {
   const addressingMap = new Map<RemoteUnspentOutput, ErgoAddressedUtxo>();
@@ -310,6 +321,7 @@ export function newErgoUnsignedTxFromUtxo(request: {|
   protocolParams: {|
     FeeAddress: string,
     MinimumBoxValue: string,
+    NetworkId: number,
   |},
 |}): ErgoUnsignedTxUtxoResponse {
   if (request.utxos.length === 0) {
@@ -405,7 +417,8 @@ export function newErgoUnsignedTxFromUtxo(request: {|
     return changeToModel(
       selectedChange,
       request.changeAddr.addressing,
-      request.changeAddr.address
+      request.changeAddr.address,
+      request.protocolParams.NetworkId,
     );
   })();
 

@@ -33,12 +33,13 @@ import {
   genToRelativeSlotNumber,
   genTimeToSlot,
 } from '../../api/ada/lib/storage/bridge/timeUtils';
-import { isCardanoHaskell, getCardanoHaskellBaseConfig } from '../../api/ada/lib/storage/database/prepackaged/networks';
+import { isCardanoHaskell, getCardanoHaskellBaseConfig, defaultAssets } from '../../api/ada/lib/storage/database/prepackaged/networks';
 import type { DelegationRequests, } from '../toplevel/DelegationStore';
 import type { NetworkRow } from '../../api/ada/lib/storage/database/primitives/tables';
 import type { GetRegistrationHistoryResponse, GetRegistrationHistoryFunc } from '../../api/ada/lib/storage/bridge/delegationUtils';
 import type { MangledAmountFunc } from '../stateless/mangledAddresses';
 import { getUnmangleAmounts } from '../stateless/mangledAddresses';
+import { MultiToken } from '../../api/common/lib/MultiToken';
 
 export type AdaDelegationRequests = {|
   publicDeriver: PublicDeriver<>,
@@ -123,9 +124,15 @@ export default class AdaDelegationStore extends Store {
           const stateForStakingKey = accountStateResp[stakingKeyResp.addr.Hash];
           const delegatedBalance = delegationRequest.getDelegatedBalance.execute({
             publicDeriver: withStakingKey,
-            rewardBalance: new BigNumber(stateForStakingKey == null
-              ? 0
-              : stateForStakingKey.remainingAmount),
+            rewardBalance: new MultiToken([{
+              amount: new BigNumber(stateForStakingKey == null
+                ? 0
+                : stateForStakingKey.remainingAmount),
+              networkId: publicDeriver.getParent().getNetworkInfo().NetworkId,
+              identifier: defaultAssets.filter(
+                asset => asset.NetworkId === publicDeriver.getParent().getNetworkInfo().NetworkId
+              )[0].Identifier,
+            }]),
             stakingAddress: stakingKeyResp.addr.Hash,
           }).promise;
           if (delegatedBalance == null) throw new Error('Should never happen');

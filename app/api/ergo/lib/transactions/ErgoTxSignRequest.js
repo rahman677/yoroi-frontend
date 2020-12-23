@@ -14,6 +14,7 @@ import { PRIMARY_ASSET_CONSTANTS } from '../../../ada/lib/storage/database/primi
 
 type NetworkSettingSnapshot = {|
   // there is no way given just an unsigned transaction body to know which network it belongs to
+  +NetworkId: number,
   +ChainNetworkId: $Values<typeof RustModule.SigmaRust.NetworkPrefix>,
   +FeeAddress: string,
 |};
@@ -38,20 +39,26 @@ export class ErgoTxSignRequest implements ISignRequest<RustModule.SigmaRust.TxBu
   }
 
   totalInput(): MultiToken {
-    return getTxInputTotal(this.unsignedTx, this.changeAddr);
+    return getTxInputTotal(
+      this.unsignedTx,
+      this.changeAddr,
+      this.networkSettingSnapshot.NetworkId
+    );
   }
 
   totalOutput(): MultiToken {
     return getTxOutputTotal(
       this.unsignedTx,
       this.networkSettingSnapshot.ChainNetworkId,
-      this.networkSettingSnapshot.FeeAddress
+      this.networkSettingSnapshot.FeeAddress,
+      this.networkSettingSnapshot.NetworkId
     );
   }
 
   fee(): MultiToken {
     return getErgoTxFee(
       this.unsignedTx,
+      this.networkSettingSnapshot.NetworkId
     );
   }
 
@@ -105,6 +112,7 @@ export class ErgoTxSignRequest implements ISignRequest<RustModule.SigmaRust.TxBu
 export function getTxInputTotal(
   tx: RustModule.SigmaRust.TxBuilder,
   changeAddr: Array<{| ...Address, ...Value, ...Addressing |}>,
+  networkId: number,
 ): MultiToken {
   const values = new MultiToken([]);
 
@@ -113,14 +121,16 @@ export function getTxInputTotal(
     const input = inputs.get(i);
     values.add({
       identifier: PRIMARY_ASSET_CONSTANTS.Ergo,
-      amount: new BigNumber(input.value().as_i64().to_str())
+      amount: new BigNumber(input.value().as_i64().to_str()),
+      networkId,
     });
     const tokens = input.tokens();
     for (let j = 0; j < tokens.len(); j++) {
       const token = tokens.get(j);
       values.add({
         identifier: token.id().to_str(),
-        amount: new BigNumber(token.amount().as_i64().to_str())
+        amount: new BigNumber(token.amount().as_i64().to_str()),
+        networkId,
       });
     }
   }
@@ -132,8 +142,9 @@ export function getTxInputTotal(
 
 export function getTxOutputTotal(
   tx: RustModule.SigmaRust.TxBuilder,
-  networkId: $Values<typeof RustModule.SigmaRust.NetworkPrefix>,
+  chainNetworkId: $Values<typeof RustModule.SigmaRust.NetworkPrefix>,
   feeAddress: string,
+  networkId: number,
 ): MultiToken {
   const values = new MultiToken([]);
 
@@ -141,7 +152,7 @@ export function getTxOutputTotal(
   for (let i = 0; i < outputs.len(); i++) {
     const output = outputs.get(i);
     const address = RustModule.SigmaRust.NetworkAddress.new(
-      networkId,
+      chainNetworkId,
       RustModule.SigmaRust.Address.recreate_from_ergo_tree(
         output.ergo_tree()
       )
@@ -152,7 +163,8 @@ export function getTxOutputTotal(
     }
     values.add({
       identifier: PRIMARY_ASSET_CONSTANTS.Ergo,
-      amount: new BigNumber(output.value().as_i64().to_str())
+      amount: new BigNumber(output.value().as_i64().to_str()),
+      networkId,
     });
 
     const tokens = output.tokens();
@@ -160,7 +172,8 @@ export function getTxOutputTotal(
       const token = tokens.get(j);
       values.add({
         identifier: token.id().to_str(),
-        amount: new BigNumber(token.amount().as_i64().to_str())
+        amount: new BigNumber(token.amount().as_i64().to_str()),
+        networkId,
       });
     }
   }
@@ -170,10 +183,12 @@ export function getTxOutputTotal(
 
 export function getErgoTxFee(
   tx: RustModule.SigmaRust.TxBuilder,
+  networkId: number,
 ): MultiToken {
   const values = new MultiToken([{
     identifier: PRIMARY_ASSET_CONSTANTS.Ergo,
     amount: new BigNumber(tx.fee_amount().as_i64().to_str()),
+    networkId,
   }]);
 
   return values;

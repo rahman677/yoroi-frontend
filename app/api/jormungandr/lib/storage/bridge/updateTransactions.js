@@ -1395,6 +1395,7 @@ function genJormungandrIOGen(
   tokenList: Array<{|
     TokenList: TokenListInsert,
     identifier: string,
+    networkId: number,
   |}>,
 |}) {
   return (txRowId) => {
@@ -1414,6 +1415,7 @@ function genJormungandrIOGen(
           TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Jormungandr).TokenId,
         },
         identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+        networkId: network.NetworkId,
       });
       if (input.type === InputTypes.utxo || input.type === InputTypes.legacyUtxo) {
         utxoInputs.push({
@@ -1448,6 +1450,7 @@ function genJormungandrIOGen(
           TokenId: getAssetInfoOrThrow(PRIMARY_ASSET_CONSTANTS.Jormungandr).TokenId,
         },
         identifier: PRIMARY_ASSET_CONSTANTS.Jormungandr,
+        networkId: network.NetworkId,
       });
       // consider a group address as a UTXO output
       // since the payment (UTXO) key is the one that signs

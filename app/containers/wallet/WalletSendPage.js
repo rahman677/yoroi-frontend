@@ -139,9 +139,7 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
             this.context.intl,
           )}
           onSubmit={onSubmit}
-          totalInput={transactionBuilderStore.totalInput?.getDefault(
-            publicDeriver.getParent().getNetworkInfo().NetworkId
-          )}
+          totalInput={transactionBuilderStore.totalInput?.getDefault()}
           hasAnyPending={hasAnyPending}
           classicTheme={profile.isClassicTheme}
           updateReceiver={(addr: void | string) => txBuilderActions.updateReceiver.trigger(addr)}
@@ -149,9 +147,7 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
           updateMemo={(content: void | string) => txBuilderActions.updateMemo.trigger(content)}
           shouldSendAll={transactionBuilderStore.shouldSendAll}
           toggleSendAll={txBuilderActions.toggleSendAll.trigger}
-          fee={transactionBuilderStore.fee?.getDefault(
-            publicDeriver.getParent().getNetworkInfo().NetworkId
-          )}
+          fee={transactionBuilderStore.fee?.getDefault()}
           isCalculatingFee={transactionBuilderStore.createUnsignedTx.isExecuting}
           reset={txBuilderActions.reset.trigger}
           error={transactionBuilderStore.createUnsignedTx.error}
@@ -272,16 +268,10 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
         <HWSendConfirmationDialog
           staleTx={transactionBuilderStore.txMismatch}
           selectedExplorer={selectedExplorerForNetwork}
-          amount={totalInput.joinSubtractCopy(fee).getDefault(
-            conceptualWallet.getNetworkInfo().NetworkId
-          )}
+          amount={totalInput.joinSubtractCopy(fee).getDefault()}
           receivers={receivers}
-          totalAmount={totalInput.getDefault(
-            conceptualWallet.getNetworkInfo().NetworkId
-          )}
-          transactionFee={fee.getDefault(
-            conceptualWallet.getNetworkInfo().NetworkId
-          )}
+          totalAmount={totalInput.getDefault()}
+          transactionFee={fee.getDefault()}
           ticker={apiMeta.primaryTicker}
           messages={messagesLedger}
           isSubmitting={ledgerSendStore.isActionProcessing}
@@ -310,16 +300,10 @@ export default class WalletSendPage extends Component<InjectedOrGenerated<Genera
         <HWSendConfirmationDialog
           staleTx={transactionBuilderStore.txMismatch}
           selectedExplorer={selectedExplorerForNetwork}
-          amount={totalInput.joinSubtractCopy(fee).getDefault(
-            conceptualWallet.getNetworkInfo().NetworkId
-          )}
+          amount={totalInput.joinSubtractCopy(fee).getDefault()}
           receivers={receivers}
-          totalAmount={totalInput.getDefault(
-            conceptualWallet.getNetworkInfo().NetworkId
-          )}
-          transactionFee={fee.getDefault(
-            conceptualWallet.getNetworkInfo().NetworkId
-          )}
+          totalAmount={totalInput.getDefault()}
+          transactionFee={fee.getDefault()}
           ticker={apiMeta.primaryTicker}
           messages={messagesTrezor}
           isSubmitting={trezorSendStore.isActionProcessing}

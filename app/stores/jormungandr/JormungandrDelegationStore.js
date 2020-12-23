@@ -31,11 +31,12 @@ import {
   genToRelativeSlotNumber,
   genTimeToSlot,
 } from '../../api/jormungandr/lib/storage/bridge/timeUtils';
-import { isJormungandr, getJormungandrBaseConfig } from '../../api/ada/lib/storage/database/prepackaged/networks';
+import { isJormungandr, getJormungandrBaseConfig, defaultAssets } from '../../api/ada/lib/storage/database/prepackaged/networks';
 import type { DelegationRequests } from '../toplevel/DelegationStore';
 import type { NetworkRow } from '../../api/ada/lib/storage/database/primitives/tables';
 import type { MangledAmountFunc } from '../stateless/mangledAddresses';
 import { getUnmangleAmounts } from '../stateless/mangledAddresses';
+import { MultiToken } from '../../api/common/lib/MultiToken';
 
 export default class JormungandrDelegationStore extends Store {
 
@@ -115,7 +116,13 @@ export default class JormungandrDelegationStore extends Store {
           }
           const delegatedBalance = delegationRequest.getDelegatedBalance.execute({
             publicDeriver: withStakingKey,
-            rewardBalance: new BigNumber(stateForStakingKey.value),
+            rewardBalance: new MultiToken([{
+              amount: new BigNumber(stateForStakingKey.value),
+              networkId: publicDeriver.getParent().getNetworkInfo().NetworkId,
+              identifier: defaultAssets.filter(
+                asset => asset.NetworkId === publicDeriver.getParent().getNetworkInfo().NetworkId
+              )[0].Identifier,
+            }]),
             stakingAddress: stakingKeyResp.addr.Hash,
           }).promise;
           if (delegatedBalance == null) throw new Error('Should never happen');

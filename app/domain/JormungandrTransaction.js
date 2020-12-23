@@ -9,8 +9,8 @@ import type {
 import type {
   DbBlock,
   CertificatePart,
+  NetworkRow,
 } from '../api/ada/lib/storage/database/primitives/tables';
-import type { ApiOptionType } from '../api/common/utils';
 import WalletTransaction, { toAddr } from './WalletTransaction';
 import type { WalletTransactionCtorData } from './WalletTransaction';
 
@@ -35,7 +35,7 @@ export default class JormungandrTransaction extends WalletTransaction {
       ...UserAnnotation,
     |},
     addressLookupMap: Map<number, string>,
-    api: ApiOptionType,
+    network: $ReadOnly<NetworkRow>,
   |}): JormungandrTransaction {
     const { addressLookupMap, tx } = request;
 

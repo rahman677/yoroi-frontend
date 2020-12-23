@@ -303,12 +303,12 @@ async function syncingSimpleTransaction(
 
     {
       const response = await basePubDeriver.getUtxoBalance();
-      expect(response.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2100000'));
+      expect(response.getDefault()).toEqual(new BigNumber('2100000'));
     }
 
     {
       const response = await basePubDeriver.getUtxoBalance();
-      expect(response.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2100000'));
+      expect(response.getDefault()).toEqual(new BigNumber('2100000'));
     }
 
     {
@@ -483,12 +483,12 @@ async function syncingSimpleTransaction(
 
     {
       const response = await basePubDeriver.getUtxoBalance();
-      expect(response.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2000000'));
+      expect(response.getDefault()).toEqual(new BigNumber('2000000'));
     }
 
     {
       const response = await basePubDeriver.getUtxoBalance();
-      expect(response.getDefault(publicDeriver.getParent().getNetworkInfo().NetworkId)).toEqual(new BigNumber('2000000'));
+      expect(response.getDefault()).toEqual(new BigNumber('2000000'));
     }
 
     {
